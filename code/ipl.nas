@@ -30,15 +30,26 @@ entry:
 
 	mov ax,0x0820
 	mov es,ax
-	mov ah,2
-	mov al,1
 	mov ch,0
 	mov cl,2
 	mov dh,0
+
+	mov si,0
+retry:
 	mov dl,0
 	mov bx,0
+	mov al,1
+	mov ah,2
 	int 0x13
-	jc error
+	jnc fin
+	add si,1
+	cmp si,5
+	jae error
+	mov ah,0
+	mov dl,0
+	int 0x13
+	jmp retry
+
 
 fin:
 	hlt
