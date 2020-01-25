@@ -34,6 +34,7 @@ entry:
 	mov cl,2
 	mov dh,0
 
+readloop:
 	mov si,0
 retry:
 	mov dl,0
@@ -41,7 +42,7 @@ retry:
 	mov al,1
 	mov ah,2
 	int 0x13
-	jnc fin
+	jnc next
 	add si,1
 	cmp si,5
 	jae error
@@ -49,6 +50,13 @@ retry:
 	mov dl,0
 	int 0x13
 	jmp retry
+next:
+	mov ax,es
+	add ax,0x20
+	mov es,ax
+	add cl,1
+	cmp cl,18
+	jbe readloop
 
 
 fin:
