@@ -1,3 +1,5 @@
+CYLS equ 10
+
 	org 0x7c00
 
 ; 以下は標準的なFAT12フォーマットフロッピーディスクのための記述
@@ -57,6 +59,14 @@ next:
 	add cl,1
 	cmp cl,18
 	jbe readloop
+	mov cl,1
+	add dh,1
+	cmp dh,2
+	jb readloop
+	mov dh,0
+	add ch,1
+	cmp ch,CYLS
+	jb readloop
 
 
 fin:
