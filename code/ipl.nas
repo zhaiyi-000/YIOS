@@ -68,6 +68,8 @@ next:
 	cmp ch,CYLS
 	jb readloop
 
+	mov [0xc200],ch
+	jmp 0xc200
 
 fin:
 	hlt
