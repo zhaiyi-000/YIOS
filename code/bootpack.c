@@ -43,6 +43,7 @@ void init_palette();
 void init_screen();
 void set_palette(int start, int end, unsigned char *rgb);
 void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1);
+void putfont8(unsigned char *vram, int xsize, int x, int y, int c, char *font);//显示字符
 
 struct BootInfo {
 	char CYLS,LEDS;
@@ -52,8 +53,20 @@ struct BootInfo {
 
 void HariMain(){
 
+	struct BootInfo *bInfo = (struct BootInfo *)0xff0;
+	unsigned char *vram = bInfo->VRAM;
+	int xsize = bInfo->SCRNX;
+	int ysize = bInfo->SCRNY;
+
+	static char font_A[16] = {
+		0x00, 0x18, 0x18, 0x18, 0x18, 0x24, 0x24, 0x24,
+		0x24, 0x7e, 0x42, 0x42, 0x42, 0xe7, 0x00, 0x00
+	};
+
 	init_palette();
-	init_screen();
+	init_screen(vram, xsize, ysize);
+	putfont8(vram,xsize,0,0,COL8_RED,font_A);
+
 
 	for(;;){
 		io_hlt();
@@ -97,12 +110,7 @@ void set_palette(int start, int end, unsigned char *rgb) {
 	io_store_eflags(flag);
 }
 
-void init_screen(){
-
-	struct BootInfo *bInfo = (struct BootInfo *)0xff0;
-	unsigned char *vram = bInfo->VRAM;
-	int xsize = bInfo->SCRNX;
-	int ysize = bInfo->SCRNY;
+void init_screen(unsigned char *vram, int xsize, int ysize){
 
 	boxfill8(vram, xsize, COL8_008484,  0,         0,          xsize -  1, ysize - 29);
 	boxfill8(vram, xsize, COL8_C6C6C6,  0,         ysize - 28, xsize -  1, ysize - 28);
@@ -131,6 +139,23 @@ void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1){
 	}
 }
 
+//显示字符
+void putfont8(unsigned char *vram, int xsize, int x, int y, int c, char *font) {
+	int i;
+	char *p, ch;  //bug:把p申明成了 int*,导致显示不正常
+	for (i = 0; i < 16; ++i) {
+		p = vram+(y+i)*xsize+x;
+		ch = font[i];
+		if((ch & 0x80) !=0) p[0] = c;
+		if((ch & 0x40) !=0) p[1] = c;
+		if((ch & 0x20) !=0) p[2] = c;
+		if((ch & 0x10) !=0) p[3] = c;
+		if((ch & 0x08) !=0) p[4] = c;
+		if((ch & 0x04) !=0) p[5] = c;
+		if((ch & 0x02) !=0) p[6] = c;
+		if((ch & 0x01) !=0) p[7] = c;
+	}
+}
 
 
 
