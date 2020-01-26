@@ -48,6 +48,17 @@ hello zy:
 		返回值无
 	将CYLS的值写到内存0x0ff0
 
+8. 32位模式前期准备:
+		CYLS=0xff0;读取的柱面数
+		LEDS=0xff1;
+		VMODE=0xff2;颜色的位数 byte ,8
+		SCRNX=0xff4;分辨率的x word 320
+		SCRNY=0xff6;分辨率的y word 200
+		VRAM=0xff8;图像缓冲区的开始地址 dw 0xa0000
+		int 0x16;键盘上各种LED指示灯的状态
+			ah=2
+			[LEDS] = al
+
 
 
 
