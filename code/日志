@@ -60,6 +60,12 @@ hello zy:
 			[LEDS] = al
 
 
+9. 开始导入C语言
+	新建bootpack.c文件
+	增加HariMain函数,无参无返回
+		
+
+
 
 
 
