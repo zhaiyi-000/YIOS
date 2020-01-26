@@ -44,6 +44,12 @@ void init_screen();
 void set_palette(int start, int end, unsigned char *rgb);
 void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1);
 
+struct BootInfo {
+	char CYLS,LEDS;
+	short VMODE,SCRNX,SCRNY;
+	unsigned char * VRAM;
+};
+
 void HariMain(){
 
 	init_palette();
@@ -92,9 +98,11 @@ void set_palette(int start, int end, unsigned char *rgb) {
 }
 
 void init_screen(){
-	unsigned char *vram = *(int *)0xff8;
-	int xsize =*(short *)0xff4;
-	int ysize = *(short *)0xff6;
+
+	struct BootInfo *bInfo = (struct BootInfo *)0xff0;
+	unsigned char *vram = bInfo->VRAM;
+	int xsize = bInfo->SCRNX;
+	int ysize = bInfo->SCRNY;
 
 	boxfill8(vram, xsize, COL8_008484,  0,         0,          xsize -  1, ysize - 29);
 	boxfill8(vram, xsize, COL8_C6C6C6,  0,         ysize - 28, xsize -  1, ysize - 28);
