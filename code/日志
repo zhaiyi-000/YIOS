@@ -139,6 +139,16 @@ day05
 7. 显示变量值
 	sprintf()
 
+8. 显示鼠标指针
+	init_mouse_cursor8(mouse,bc)
+	putblock8_8(vram,vxsize,pxsize,pysize,px0,py0,buf,bxsize)
+
+
+
+
+
+
+
 
 
 

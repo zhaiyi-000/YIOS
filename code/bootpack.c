@@ -44,6 +44,9 @@ void init_screen();
 void set_palette(int start, int end, unsigned char *rgb);
 void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1);
 void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s);
+void init_mouse_cursor8(char *mouse,int bc);
+void putblock8_8(unsigned char *vram,int vxsize,int pxsize,int pysize,
+	int px0,int py0,char *buf,int bxsize);
 
 struct BootInfo {
 	char CYLS,LEDS;
@@ -61,13 +64,19 @@ void HariMain(){
 	init_palette();
 	init_screen(vram, xsize, ysize);
 
+	//logo
 	putfont8_asc(vram, xsize,8,8,COL8_RED,"HELLO YIOS");
 	putfont8_asc(vram, xsize,7,7,COL8_RED,"HELLO YIOS");
 
+	//debugger
 	char s[40];
 	sprintf(s, "xsize=%d|",xsize);
 	putfont8_asc(vram, xsize,8,32,COL8_RED, s);
 
+	//鼠标
+	char mouse[256];
+	init_mouse_cursor8(mouse,COL8_RED);
+	putblock8_8(vram,xsize,16,16,160,100,mouse,16);
 
 	for(;;){
 		io_hlt();
@@ -163,6 +172,47 @@ void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s)
 	for (;*s!=0;s++) {
 		putfont8(vram,xsize,x,y,c,hankaku+(*s)*16);
 		x+=8;
+	}
+}
+
+void init_mouse_cursor8(char *mouse,int bc) {
+	static char cursor[16][16] = {
+		"**************..",
+		"*OOOOOOOOOOO*...",
+		"*OOOOOOOOOO*....",
+		"*OOOOOOOOO*.....",
+		"*OOOOOOOO*......",
+		"*OOOOOOO*.......",
+		"*OOOOOOO*.......",
+		"*OOOOOOOO*......",
+		"*OOOO**OOO*.....",
+		"*OOO*..*OOO*....",
+		"*OO*....*OOO*...",
+		"*O*......*OOO*..",
+		"**........*OOO*.",
+		"*..........*OOO*",
+		"............*OO*",
+		".............***"
+	};
+	int idx,x,y;
+
+	for (y = 0; y < 16; ++y) {
+		for (x = 0; x < 16; ++x) {
+			idx = y*16+x;
+			if (cursor[y][x]=='.') mouse[idx] = bc;
+			else if (cursor[y][x]=='*') mouse[idx] = COL8_BLACK;
+			else mouse[idx] = COL8_WHITE;
+		}
+	}
+}
+
+void putblock8_8(unsigned char *vram,int vxsize,int pxsize,int pysize,
+	int px0,int py0,char *buf,int bxsize) {
+	int x,y;
+	for (y = 0; y < pysize; ++y) {
+		for (x = 0; x < pxsize; ++x) {
+			vram[(y+py0)*vxsize+x+px0] = buf[y*bxsize+x];
+		}
 	}
 }
 
