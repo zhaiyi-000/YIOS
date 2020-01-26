@@ -54,18 +54,20 @@ struct BootInfo {
 void HariMain(){
 
 	struct BootInfo *bInfo = (struct BootInfo *)0xff0;
+	extern char hankaku[4096];
 	unsigned char *vram = bInfo->VRAM;
 	int xsize = bInfo->SCRNX;
 	int ysize = bInfo->SCRNY;
 
-	static char font_A[16] = {
-		0x00, 0x18, 0x18, 0x18, 0x18, 0x24, 0x24, 0x24,
-		0x24, 0x7e, 0x42, 0x42, 0x42, 0xe7, 0x00, 0x00
-	};
-
 	init_palette();
 	init_screen(vram, xsize, ysize);
-	putfont8(vram,xsize,0,0,COL8_RED,font_A);
+
+	putfont8(vram,xsize,8,8,COL8_RED,hankaku+'A'*16);
+	putfont8(vram,xsize,16,8,COL8_RED,hankaku+'b'*16);
+	putfont8(vram,xsize,24,8,COL8_RED,hankaku+'C'*16);
+	putfont8(vram,xsize,40,8,COL8_RED,hankaku+'1'*16);
+	putfont8(vram,xsize,48,8,COL8_RED,hankaku+'4'*16);
+	putfont8(vram,xsize,56,8,COL8_RED,hankaku+'5'*16);
 
 
 	for(;;){
