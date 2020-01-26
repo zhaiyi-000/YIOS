@@ -5,7 +5,8 @@ void HariMain(){
 	int i;
 
 	for(i = 0xa0000;i < 0xb0000;i++){
-		write_mem8(i,15);
+		// write_mem8(i,15);
+		*((char *)i) = 15;
 	}
 
 	for(;;){
