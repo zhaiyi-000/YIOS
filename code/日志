@@ -63,7 +63,18 @@ hello zy:
 9. 开始导入C语言
 	新建bootpack.c文件
 	增加HariMain函数,无参无返回
-		
+
+
+10. 实现HLT
+	增加naskfunc.nas文件 p70
+	[FORMAT "WCOFF"];制作目标文件的模式
+	[BITS 32];制作32位模式用的机械语言
+
+	[FILE "naskfunc.nas"] ;源文件名信息
+	GLOBAL _io_hlt  ;
+
+	[SECTION .text];目标文件写了这些之后再写程序
+	ret
 
 
 
