@@ -77,6 +77,15 @@ hello zy:
 	ret
 
 
+day04
+1. 用c语言实现内存写入
+	_write_mem8
+	ecx保存addr
+	al保存data
+	0xa0000-0xb0000,写入15
+	[INSTRSET "i486p"]
+
+
 
 
 
