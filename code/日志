@@ -120,5 +120,13 @@ day04
 	void boxfill8(vram,xsize,c,x0,y0,x1,y1)
 
 
+day05
+1. 接受启动信息
+	vram
+	xsize
+	ysize
+	init_screen函数
+
+
 
 
