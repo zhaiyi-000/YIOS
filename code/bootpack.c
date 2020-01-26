@@ -43,7 +43,7 @@ void init_palette();
 void init_screen();
 void set_palette(int start, int end, unsigned char *rgb);
 void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1);
-void putfont8(unsigned char *vram, int xsize, int x, int y, int c, char *font);//显示字符
+void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s);
 
 struct BootInfo {
 	char CYLS,LEDS;
@@ -54,7 +54,6 @@ struct BootInfo {
 void HariMain(){
 
 	struct BootInfo *bInfo = (struct BootInfo *)0xff0;
-	extern char hankaku[4096];
 	unsigned char *vram = bInfo->VRAM;
 	int xsize = bInfo->SCRNX;
 	int ysize = bInfo->SCRNY;
@@ -62,12 +61,9 @@ void HariMain(){
 	init_palette();
 	init_screen(vram, xsize, ysize);
 
-	putfont8(vram,xsize,8,8,COL8_RED,hankaku+'A'*16);
-	putfont8(vram,xsize,16,8,COL8_RED,hankaku+'b'*16);
-	putfont8(vram,xsize,24,8,COL8_RED,hankaku+'C'*16);
-	putfont8(vram,xsize,40,8,COL8_RED,hankaku+'1'*16);
-	putfont8(vram,xsize,48,8,COL8_RED,hankaku+'4'*16);
-	putfont8(vram,xsize,56,8,COL8_RED,hankaku+'5'*16);
+	putfont8_asc(vram, xsize,8,8,COL8_RED,"abKSE-123");
+	putfont8_asc(vram, xsize,31,31,COL8_RED,"Hello-YIOS");
+	putfont8_asc(vram, xsize,30,30,COL8_RED,"Hello-YIOS");
 
 
 	for(;;){
@@ -156,6 +152,14 @@ void putfont8(unsigned char *vram, int xsize, int x, int y, int c, char *font) {
 		if((ch & 0x04) !=0) p[5] = c;
 		if((ch & 0x02) !=0) p[6] = c;
 		if((ch & 0x01) !=0) p[7] = c;
+	}
+}
+
+void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s) {
+	extern char hankaku[4096];
+	for (;*s!=0;s++) {
+		putfont8(vram,xsize,x,y,c,hankaku+(*s)*16);
+		x+=8;
 	}
 }
 

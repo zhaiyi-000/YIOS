@@ -133,6 +133,9 @@ day05
 5. 增加字体
 	extern char hankaku[4096];
 
+6. 显示字符串
+	putfont8_asc(vram,xsize,x,y,c,s)
+
 
 
 
