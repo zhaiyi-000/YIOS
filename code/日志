@@ -136,6 +136,9 @@ day05
 6. 显示字符串
 	putfont8_asc(vram,xsize,x,y,c,s)
 
+7. 显示变量值
+	sprintf()
+
 
 
 

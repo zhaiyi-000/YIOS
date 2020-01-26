@@ -61,9 +61,12 @@ void HariMain(){
 	init_palette();
 	init_screen(vram, xsize, ysize);
 
-	putfont8_asc(vram, xsize,8,8,COL8_RED,"abKSE-123");
-	putfont8_asc(vram, xsize,31,31,COL8_RED,"Hello-YIOS");
-	putfont8_asc(vram, xsize,30,30,COL8_RED,"Hello-YIOS");
+	putfont8_asc(vram, xsize,8,8,COL8_RED,"HELLO YIOS");
+	putfont8_asc(vram, xsize,7,7,COL8_RED,"HELLO YIOS");
+
+	char s[40];
+	sprintf(s, "xsize=%d|",xsize);
+	putfont8_asc(vram, xsize,8,32,COL8_RED, s);
 
 
 	for(;;){
