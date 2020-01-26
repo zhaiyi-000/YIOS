@@ -116,6 +116,8 @@ day04
 		ret
 	_io_store_eflags
 
+7. 绘制矩形
+	void boxfill8(vram,xsize,c,x0,y0,x1,y1)
 
 
 
