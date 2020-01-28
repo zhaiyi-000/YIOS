@@ -143,6 +143,8 @@ day05
 	init_mouse_cursor8(mouse,bc)
 	putblock8_8(vram,vxsize,pxsize,pysize,px0,py0,buf,bxsize)
 
+9. GDT和IDT的初始化
+
 
 
 
