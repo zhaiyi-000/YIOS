@@ -35,6 +35,24 @@
 #define COL8_848484		15
 
 
+struct BootInfo {
+	char CYLS,LEDS;
+	short VMODE,SCRNX,SCRNY;
+	unsigned char * VRAM;
+};
+
+struct SEGMENT_DESCRIPTOR {
+	short limit_low, base_low;
+	char base_mid, access_right;
+	char limit_high, base_high;
+};
+
+struct GATE_DESCRIPTOR {
+	short offset_low, selector;
+	char dw_count, access_right;
+	short offset_high;
+};
+
 
 void io_hlt();
 void io_cli();
@@ -43,4 +61,26 @@ int io_load_eflags();
 void io_store_eflags(int data);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
+
+
+
+void init_palette();
+void set_palette(int start, int end, unsigned char *rgb);
+void init_screen();
+void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1); //绘制矩形
+
+void init_mouse_cursor8(char *mouse,int bc);
+void putblock8_8(unsigned char *vram,int vxsize,int pxsize,int pysize,
+	int px0,int py0,char *buf,int bxsize);  //把鼠标的buff写到显存中
+
+
+void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s); //显示字符串
+
+void init_gdtidt(void);
+void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
+void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
+
+
+
+
 

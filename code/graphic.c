@@ -1,11 +1,4 @@
-#include "head.h"
-
-
-
-void set_palette(int start, int end, unsigned char *rgb);
-void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1);
-
-
+#include "bootpack.h"
 
 void init_palette(){
 	static unsigned char rgb[16*3] = {
