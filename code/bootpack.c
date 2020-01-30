@@ -32,11 +32,15 @@ void HariMain(){
     char data;
 	for(;;){
         io_cli();
-        if (keybuf.flag==0) {
+        if (keybuf.len==0) {
             io_stihlt();
         }else{
-            data = keybuf.data;
-            keybuf.flag = 0;
+            data = keybuf.data[keybuf.left];
+            keybuf.left++;
+            if (keybuf.left==KEYBUFLEN) {
+                keybuf.left = 0;
+            }
+            keybuf.len--;
             io_sti();
             sprintf(s, "%02X",data);
             

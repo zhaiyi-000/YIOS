@@ -105,6 +105,8 @@ void init_pic(void);
 #define PIC1_ICW3        0x00a1
 #define PIC1_ICW4        0x00a1
 
+#define KEYBUFLEN 32
 struct KEYBUF {
-    char data, flag;
+    char data[KEYBUFLEN];
+    int right,left,len;
 };

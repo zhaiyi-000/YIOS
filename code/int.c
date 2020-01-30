@@ -43,9 +43,13 @@ void inthandler21(int esp){  //源代码写的是int *,先不管
     io_out8(PIC0_OCW2, 0x61);
     data = io_in8(0x60);
     
-    if (keybuf.flag==0) {
-        keybuf.flag = 1;
-        keybuf.data = data;
+    if (keybuf.len<KEYBUFLEN) {
+        keybuf.data[keybuf.right] = data;
+        keybuf.right++;
+        if (keybuf.right==KEYBUFLEN) {
+            keybuf.right = 0;
+        }
+        keybuf.len++;
     }
 }
 
