@@ -35,22 +35,14 @@ void init_pic(void) {
     set_gatedesc(idt + 0x27, (int)asm_inthandler27, 16, 0x8e);
 }
 
-struct KEYBUF keybuf;
+struct FIFO8 keyBuf;
 
 void inthandler21(int esp){  //源代码写的是int *,先不管
     char data;
     
     io_out8(PIC0_OCW2, 0x61);
     data = io_in8(0x60);
-    
-    if (keybuf.len<KEYBUFLEN) {
-        keybuf.data[keybuf.right] = data;
-        keybuf.right++;
-        if (keybuf.right==KEYBUFLEN) {
-            keybuf.right = 0;
-        }
-        keybuf.len++;
-    }
+    fifo8_put(&keyBuf, data);
 }
 
 void inthandler2c(int esp){  //源代码写的是int *,先不管

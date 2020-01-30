@@ -205,7 +205,12 @@ day07
     struct KEYBUF{data,tag}
     
 34. FIFO缓冲区
-    
+5. 整理FIFO缓冲区
+    struct FIFO8{buf,left,right,size,free,flags}
+    fifo8_init(fifo,size,buf)
+    int fifo8_put(fifo,data)
+    int fifo8_get(fifo)
+    int fifo8_status(fifo)
 
 
 

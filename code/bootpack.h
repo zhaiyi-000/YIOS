@@ -105,8 +105,21 @@ void init_pic(void);
 #define PIC1_ICW3        0x00a1
 #define PIC1_ICW4        0x00a1
 
-#define KEYBUFLEN 32
-struct KEYBUF {
-    char data[KEYBUFLEN];
-    int right,left,len;
+//#define KEYBUFLEN 32
+//struct KEYBUF {
+//    char data[KEYBUFLEN];
+//    int right,left,len;
+//};
+
+
+// fifo8.c
+struct FIFO8 {
+    unsigned char *buf;
+    int left,right,size,free,flags;
 };
+
+void fifo8_init(struct FIFO8 *fifo,int size,unsigned char *buf);
+void fifo8_put(struct FIFO8 *fifo,char data);
+int fifo8_get(struct FIFO8 *fifo);
+int fifo8_status(struct FIFO8 *fifo);
+

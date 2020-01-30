@@ -1,6 +1,6 @@
 #include "bootpack.h"
 
-extern struct KEYBUF keybuf;
+extern struct FIFO8 keyBuf;
 
 void HariMain(){
 
@@ -8,6 +8,8 @@ void HariMain(){
 	unsigned char *vram = bInfo->VRAM;
 	int xsize = bInfo->SCRNX;
 	int ysize = bInfo->SCRNY;
+    char keyBuf__[32];
+    fifo8_init(&keyBuf, 32, keyBuf__);
 
     init_gdtidt();
     init_pic();
@@ -32,15 +34,10 @@ void HariMain(){
     char data;
 	for(;;){
         io_cli();
-        if (keybuf.len==0) {
+        if (fifo8_status(&keyBuf)==0) {
             io_stihlt();
         }else{
-            data = keybuf.data[keybuf.left];
-            keybuf.left++;
-            if (keybuf.left==KEYBUFLEN) {
-                keybuf.left = 0;
-            }
-            keybuf.len--;
+            data = fifo8_get(&keyBuf);
             io_sti();
             sprintf(s, "%02X",data);
             
