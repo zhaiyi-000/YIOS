@@ -1,6 +1,7 @@
 #include "bootpack.h"
 
-extern struct FIFO8 keyBuf;
+extern struct FIFO8 keyfifo;
+extern struct FIFO8 mousefifo;
 
 void init_keyboard(void);
 void enable_mouse(void);
@@ -12,7 +13,9 @@ void HariMain(){
 	int xsize = bInfo->SCRNX;
 	int ysize = bInfo->SCRNY;
     char keyBuf__[32];
-    fifo8_init(&keyBuf, 32, keyBuf__);
+    char mouseBuf__[128];
+    fifo8_init(&keyfifo, 32, keyBuf__);
+    fifo8_init(&mousefifo, 128, mouseBuf__);
 
     init_gdtidt();
     init_pic();
@@ -40,16 +43,26 @@ void HariMain(){
     char data;
 	for(;;){
         io_cli();
-        if (fifo8_status(&keyBuf)==0) {
+        if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo)==0) {
             io_stihlt();
         }else{
-            data = fifo8_get(&keyBuf);
-            io_sti();
-            sprintf(s, "%02X",data);
-            
-            struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
-            boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 0, 40*8-1, 15);
-            putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 0, COL8_YELLOW, s);
+            if (fifo8_status(&keyfifo)!=0) {
+                data = fifo8_get(&keyfifo);
+                io_sti();
+                sprintf(s, "%02X",data);
+                
+                struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
+                boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 0, 40*8-1, 15);
+                putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 0, COL8_YELLOW, s);
+            }else if(fifo8_status(&mousefifo)!=0){
+                data = fifo8_get(&keyfifo);
+                io_sti();
+                sprintf(s, "%02X",data);
+                
+                struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
+                boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 0, 40*8-1, 15);
+                putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 32, 0, COL8_YELLOW, s);
+            }
         }
 	}
     

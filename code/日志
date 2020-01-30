@@ -226,7 +226,13 @@ day07
         out(0x64,0xd4)
         wait
         out(0x60,0xf4)  // 0x64是控制和状态端口,0x60是数据端口
-
+        
+7. 从鼠标接受数据
+    鼠标中断
+        out(pic1_ocw2,0x64);
+        out(pic0_ocw2,0x62);
+        in(0x60)
+    mousefifo
 
 
 
