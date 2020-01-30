@@ -19,9 +19,9 @@ void init_pic(void) {
     io_out8(PIC0_ICW4, 0x1);
     
     io_out8(PIC1_ICW1, 0x11);
-    io_out8(PIC1_ICW1, 0x28); //irq8-15由int28-2f接受
-    io_out8(PIC1_ICW1, 2);  //pic1由irq2接受
-    io_out8(PIC1_ICW1, 0x1);
+    io_out8(PIC1_ICW2, 0x28); //irq8-15由int28-2f接受
+    io_out8(PIC1_ICW3, 2);  //pic1由irq2接受
+    io_out8(PIC1_ICW4, 0x1);
     
     //io_out8(PIC0_IMR, 0xfb);  //除了2号以外全部屏幕 2号是从pic
     //io_out8(PIC1_IMR, 0xff);

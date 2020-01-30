@@ -204,14 +204,28 @@ day07
 2. 加快中断处理
     struct KEYBUF{data,tag}
     
-34. FIFO缓冲区
+3/4. FIFO缓冲区
 5. 整理FIFO缓冲区
     struct FIFO8{buf,left,right,size,free,flags}
     fifo8_init(fifo,size,buf)
     int fifo8_put(fifo,data)
     int fifo8_get(fifo)
     int fifo8_status(fifo)
-
+    
+6. 总算讲到鼠标了
+    void wait_KBC_sendready(void)
+        for
+            io_in8(0x64)&0x2==0;break;
+    void init_keyboard(void)
+        wait
+        out(0x64,0x60)
+        wait
+        out(0x60,0x47)
+    void enable_mouse(void)
+        wait
+        out(0x64,0xd4)
+        wait
+        out(0x60,0xf4)  // 0x64是控制和状态端口,0x60是数据端口
 
 
 

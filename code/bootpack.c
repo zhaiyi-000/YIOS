@@ -2,6 +2,9 @@
 
 extern struct FIFO8 keyBuf;
 
+void init_keyboard(void);
+void enable_mouse(void);
+
 void HariMain(){
 
 	struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
@@ -17,6 +20,9 @@ void HariMain(){
 	init_palette();
 	init_screen(vram, xsize, ysize);
 
+    init_keyboard();
+    enable_mouse();
+    
 	//logo
 	putfont8_asc(vram, xsize,8,8,COL8_RED,"HELLO YIOS");
 	putfont8_asc(vram, xsize,7,7,COL8_RED,"HELLO YIOS");
@@ -51,5 +57,26 @@ void HariMain(){
 }
 
 
+void wait_KBC_sendready(void){
+    for (; ; ) {
+        if ((io_in8(0x64)&0x2)==0) {
+            break;
+        }
+    }
+}
 
+        
+void init_keyboard(void){
+    wait_KBC_sendready();
+    io_out8(0x64, 0x60);
+    wait_KBC_sendready();
+    io_out8(0x60, 0x47);
+}
+
+void enable_mouse(void) {
+    wait_KBC_sendready();
+    io_out8(0x64, 0xd4);
+    wait_KBC_sendready();
+    io_out8(0x60, 0xf4);  // 0x64是控制和状态端口,0x60是数据端口
+}
 
