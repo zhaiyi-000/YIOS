@@ -200,6 +200,9 @@ day07
     data = io_in8(0x60);
     
     显示出来
+    
+2. 加快中断处理
+    struct KEYBUF{data,tag}
 
 
 

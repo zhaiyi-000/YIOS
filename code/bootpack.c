@@ -1,5 +1,7 @@
 #include "bootpack.h"
 
+extern struct KEYBUF keybuf;
+
 void HariMain(){
 
 	struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
@@ -27,9 +29,24 @@ void HariMain(){
 	init_mouse_cursor8(mouse,COL8_RED);
 	putblock8_8(vram,xsize,16,16,160,100,mouse,16);
 
+    char data;
 	for(;;){
-		io_hlt();
+        io_cli();
+        if (keybuf.flag==0) {
+            io_stihlt();
+        }else{
+            data = keybuf.data;
+            keybuf.flag = 0;
+            io_sti();
+            sprintf(s, "%02X",data);
+            
+            struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
+            boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 0, 40*8-1, 15);
+            putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 0, COL8_YELLOW, s);
+        }
 	}
+    
+    
 }
 
 

@@ -35,17 +35,18 @@ void init_pic(void) {
     set_gatedesc(idt + 0x27, (int)asm_inthandler27, 16, 0x8e);
 }
 
+struct KEYBUF keybuf;
+
 void inthandler21(int esp){  //源代码写的是int *,先不管
-    char data,s[10];
+    char data;
     
     io_out8(PIC0_OCW2, 0x61);
     data = io_in8(0x60);
     
-    sprintf(s, "%02x",data);
-    
-    struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
-    boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 0, 40*8-1, 15);
-    putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 0, COL8_YELLOW, s);
+    if (keybuf.flag==0) {
+        keybuf.flag = 1;
+        keybuf.data = data;
+    }
 }
 
 void inthandler2c(int esp){  //源代码写的是int *,先不管

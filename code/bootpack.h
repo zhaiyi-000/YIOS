@@ -59,6 +59,7 @@ void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s)
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
+void io_stihlt(void);
 char io_in8(int port);
 void io_out8(int addr, int data);
 int io_load_eflags(void);
@@ -103,3 +104,7 @@ void init_pic(void);
 #define PIC1_ICW2        0x00a1
 #define PIC1_ICW3        0x00a1
 #define PIC1_ICW4        0x00a1
+
+struct KEYBUF {
+    char data, flag;
+};
