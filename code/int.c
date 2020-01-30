@@ -36,13 +36,16 @@ void init_pic(void) {
 }
 
 void inthandler21(int esp){  //源代码写的是int *,先不管
+    char data,s[10];
+    
+    io_out8(PIC0_OCW2, 0x61);
+    data = io_in8(0x60);
+    
+    sprintf(s, "%02x",data);
+    
     struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
     boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 0, 40*8-1, 15);
-    putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 0, COL8_YELLOW, "jianpan");
-    
-    for (;;) { //我也不知道为什么
-        io_hlt();
-    }
+    putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 0, COL8_YELLOW, s);
 }
 
 void inthandler2c(int esp){  //源代码写的是int *,先不管

@@ -194,6 +194,12 @@ day06
     set_gatedesc(idt+0x21,asm_inthandler21,16,0x8e)  //0x8e是用于中断处理的有效设定
         
 
+day07
+1. 获取按键编码
+    ioout(pic0_ocw2,0x61);
+    data = io_in8(0x60);
+    
+    显示出来
 
 
 

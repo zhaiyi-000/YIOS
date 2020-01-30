@@ -59,6 +59,7 @@ void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s)
 void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
+char io_in8(int port);
 void io_out8(int addr, int data);
 int io_load_eflags(void);
 void io_store_eflags(int data);
