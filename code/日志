@@ -167,8 +167,7 @@ day06
 		load_gdtr(0xffff,0x270000) 
 	
 
-
-
+5. 初始化PIC  // programmable interrupt controller 可编程中断控制器
 
 
 

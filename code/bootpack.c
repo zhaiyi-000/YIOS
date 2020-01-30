@@ -8,6 +8,7 @@ void HariMain(){
 	int ysize = bInfo->SCRNY;
 
     init_gdtidt();
+    init_pic();
 	init_palette();
 	init_screen(vram, xsize, ysize);
 
