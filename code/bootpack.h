@@ -41,10 +41,9 @@ struct BootInfo {
 	unsigned char * VRAM;
 };
 
-struct SEGMENT_DESCRIPTOR {
-	short limit_low, base_low;
-	char base_mid, access_right;
-	char limit_high, base_high;
+struct SEGMENT_DESCRITOR {
+	short limit_low,base_low;
+	char base_mid,access_right,limit_high,base_high;
 };
 
 struct GATE_DESCRIPTOR {
@@ -54,19 +53,19 @@ struct GATE_DESCRIPTOR {
 };
 
 
-void io_hlt();
-void io_cli();
+void io_hlt(void);
+void io_cli(void);
 void io_out8(int addr, int data);
-int io_load_eflags();
+int io_load_eflags(void);
 void io_store_eflags(int data);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 
 
 
-void init_palette();
+void init_palette(void);
 void set_palette(int start, int end, unsigned char *rgb);
-void init_screen();
+void init_screen(unsigned char *vram, int xsize, int ysize);
 void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1); //绘制矩形
 
 void init_mouse_cursor8(char *mouse,int bc);
@@ -77,7 +76,7 @@ void putblock8_8(unsigned char *vram,int vxsize,int pxsize,int pysize,
 void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s); //显示字符串
 
 void init_gdtidt(void);
-void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
+void set_segmdesc(struct SEGMENT_DESCRITOR *sd,int limit,int base, int ar);
 void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 
 

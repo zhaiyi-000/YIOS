@@ -149,6 +149,23 @@ day06
 2. 整理Makefile
 	第一行用%,第二行用$*
 3. 整理头文件
+4. 意犹未尽--解释gdt
+
+	_load_gdtr:
+		gdtr是48位寄存器,低16位表示限长,高32位表示基址
+		lgdt指令
+	struct SEGMENT_DESCRITOR {
+		short limit_low,base_low;
+		char base_mid,access_right,limit_high,base_high;
+	};
+	set_segmdesc(sd,limie,base,ar)
+	init_gdtidt()
+		gdt=0x00270000
+		gdt表初始化
+		段1初始化 0xffffffff,0x0,0x4092  //92代表代表系统数据段
+		段2初始化 0x7ffff,0x280000,0x409a //9a代表系统执行段
+		load_gdtr(0xffff,0x270000) 
+	
 
 
 

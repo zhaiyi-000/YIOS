@@ -7,7 +7,7 @@ void HariMain(){
 	int xsize = bInfo->SCRNX;
 	int ysize = bInfo->SCRNY;
 
-	init_gdtidt();
+    init_gdtidt();
 	init_palette();
 	init_screen(vram, xsize, ysize);
 

@@ -74,14 +74,12 @@ _io_store_eflags:
 	popfd
 	ret
 
+_load_gdtr:
+    mov ax,[esp+4]
+    mov [esp+6],ax
+    lgdt [esp+6]
+    ret
 
-
-
-_load_gdtr:		; void load_gdtr(int limit, int addr);
-		MOV		AX,[ESP+4]		; limit
-		MOV		[ESP+6],AX
-		LGDT	[ESP+6]
-		RET
 
 _load_idtr:		; void load_idtr(int limit, int addr);
 		MOV		AX,[ESP+4]		; limit
