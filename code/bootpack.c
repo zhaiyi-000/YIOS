@@ -2,13 +2,14 @@
 
 void HariMain(){
 
-	struct BootInfo *bInfo = (struct BootInfo *)0xff0;
+	struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
 	unsigned char *vram = bInfo->VRAM;
 	int xsize = bInfo->SCRNX;
 	int ysize = bInfo->SCRNY;
 
     init_gdtidt();
     init_pic();
+    io_sti();   //这个地方产生了一个bug,调试了好久.....
 	init_palette();
 	init_screen(vram, xsize, ysize);
 

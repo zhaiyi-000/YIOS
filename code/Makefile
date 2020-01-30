@@ -65,6 +65,7 @@ haribote.img : ipl10.bin haribote.sys Makefile
 # ƒRƒ}ƒ“ƒh
 
 img :
+	xcopy "z:\YIOS\code" "c:\Users\sg\Desktop\YIOS\code" /e/i/h/y
 	$(MAKE) haribote.img
 
 run :

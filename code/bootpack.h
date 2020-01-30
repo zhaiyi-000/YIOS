@@ -1,5 +1,8 @@
 #include <stdio.h>  //可以解决关于 sprintf 的警告
 
+#define ADR_BOOTINFO 0xff0
+
+// graphic.c 调色板和屏幕初始化相关
 #define COL8_BLACK			0
 #define COL8_RED			1
 #define COL8_GREEN			2
@@ -35,54 +38,57 @@
 #define COL8_848484		15
 
 
+
 struct BootInfo {
 	char CYLS,LEDS;
 	short VMODE,SCRNX,SCRNY;
 	unsigned char * VRAM;
 };
 
-struct SEGMENT_DESCRITOR {
-	short limit_low,base_low;
-	char base_mid,access_right,limit_high,base_high;
-};
-
-struct GATE_DESCRIPTOR {
-	short offset_low, selector;
-	char dw_count, access_right;
-	short offset_high;
-};
+void init_palette(void);
+void set_palette(int start, int end, unsigned char *rgb);
+void init_screen(unsigned char *vram, int xsize, int ysize);
+void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1); //绘制矩形
+void init_mouse_cursor8(char *mouse,int bc);
+void putblock8_8(unsigned char *vram,int vxsize,int pxsize,int pysize,
+    int px0,int py0,char *buf,int bxsize);  //把鼠标的buff写到显存中
+void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s); //显示字符串
 
 
+// naskfunc.nas
 void io_hlt(void);
 void io_cli(void);
+void io_sti(void);
 void io_out8(int addr, int data);
 int io_load_eflags(void);
 void io_store_eflags(int data);
 void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
+void asm_inthandler21(void);
+void asm_inthandler2c(void);
+void asm_inthandler27(void);
 
 
 
-void init_palette(void);
-void set_palette(int start, int end, unsigned char *rgb);
-void init_screen(unsigned char *vram, int xsize, int ysize);
-void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1); //绘制矩形
+// dsctbl.c gdt idt 相关
+struct SEGMENT_DESCRITOR {
+    short limit_low,base_low;
+    char base_mid,access_right,limit_high,base_high;
+};
 
-void init_mouse_cursor8(char *mouse,int bc);
-void putblock8_8(unsigned char *vram,int vxsize,int pxsize,int pysize,
-	int px0,int py0,char *buf,int bxsize);  //把鼠标的buff写到显存中
+struct GATE_DESCRIPTOR {
+    short offset_low, selector;
+    char dw_count, access_right;
+    short offset_high;
+};
 
-
-void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s); //显示字符串
 
 void init_gdtidt(void);
 void set_segmdesc(struct SEGMENT_DESCRITOR *sd,int limit,int base, int ar);
 void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 
 
-
-
-/* int.c */
+// int.c
 void init_pic(void);
 #define PIC0_ICW1        0x0020
 #define PIC0_OCW2        0x0020

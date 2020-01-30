@@ -169,6 +169,31 @@ day06
 
 5. 初始化PIC  // programmable interrupt controller 可编程中断控制器
 
+6. 中断处理程序的制作
+    inthander21(esp)
+        ADR_BOOTINFO
+        矩形白色
+        字符串 "sdjs"
+        无限循环
+    extern _inthander21
+    _asm_inthandler21
+        push es
+        push ds
+        pushad
+        mov eax,esp
+        push eax
+        mov ax,ss
+        mov ds,ax
+        mov es,ax
+        call _inthander21   //如此大费周章的修改ds es,是因为如果不这么做,c函数将不能正常调用 p131
+        pop eax //随便找一个寄存器pop
+        popad
+        pop ds
+        pop es
+        iretd
+    set_gatedesc(idt+0x21,asm_inthandler21,16,0x8e)  //0x8e是用于中断处理的有效设定
+        
+
 
 
 
