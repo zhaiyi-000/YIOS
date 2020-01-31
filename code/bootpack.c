@@ -6,8 +6,15 @@ extern struct FIFO8 mousefifo;
 void init_keyboard(void);
 void enable_mouse(void);
 
+void yiPrintf(){
+    struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
+    boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 20, 310, 36);
+    putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 20, COL8_YELLOW, "wo lai~~~~~");
+}
+
 void HariMain(){
 
+    char s[100];
 	struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
 	unsigned char *vram = bInfo->VRAM;
 	int xsize = bInfo->SCRNX;
@@ -27,20 +34,19 @@ void HariMain(){
     enable_mouse();
     
 	//logo
-	putfont8_asc(vram, xsize,8,8,COL8_RED,"HELLO YIOS");
-	putfont8_asc(vram, xsize,7,7,COL8_RED,"HELLO YIOS");
+    boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 0, 310, 18);
+	putfont8_asc(vram, xsize,1,1,COL8_YELLOW,"HELLO YIOS");
+	putfont8_asc(vram, xsize,0,0,COL8_YELLOW,"HELLO YIOS");
 
-	//debugger
-	char s[40];
-	sprintf(s, "xsize=%d|",xsize);
-	putfont8_asc(vram, xsize,8,32,COL8_RED, s);
 
 	//鼠标
 	char mouse[256];
 	init_mouse_cursor8(mouse,COL8_RED);
 	putblock8_8(vram,xsize,16,16,160,100,mouse,16);
 
-    char data;
+    unsigned char data;
+    int mouse_phase = 0;
+    char mouseBuf[5] = {};
 	for(;;){
         io_cli();
         if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo)==0) {
@@ -52,16 +58,32 @@ void HariMain(){
                 sprintf(s, "%02X",data);
                 
                 struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
-                boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 0, 40*8-1, 15);
-                putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 0, COL8_YELLOW, s);
+                boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 40, 310, 56);
+                putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 40, COL8_YELLOW, s);
             }else if(fifo8_status(&mousefifo)!=0){
-                data = fifo8_get(&keyfifo);
+                data = fifo8_get(&mousefifo);
                 io_sti();
-                sprintf(s, "%02X",data);
                 
-                struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
-                boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 0, 40*8-1, 15);
-                putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 32, 0, COL8_YELLOW, s);
+                if (mouse_phase==0 && data == 0xfa) {
+                    mouse_phase = 1;
+                }else if(mouse_phase == 1){
+                    mouse_phase = 2;
+                    mouseBuf[0] = data;
+                }else if(mouse_phase == 2){
+                    mouse_phase = 3;
+                    mouseBuf[1] = data;
+                }else if(mouse_phase == 3){
+                    mouse_phase = 1;
+                    mouseBuf[2] = data;
+                    
+                    sprintf(s, "%08X %08X %08X",mouseBuf[0],mouseBuf[1],mouseBuf[2]);
+                    
+                    struct BootInfo *bInfo = (struct BootInfo *)ADR_BOOTINFO;
+                    boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 60, 310, 76);
+                    putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 60, COL8_YELLOW, s);
+                }
+                
+                
             }
         }
 	}

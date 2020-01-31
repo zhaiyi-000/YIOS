@@ -233,6 +233,10 @@ day07
         out(pic0_ocw2,0x62);
         in(0x60)
     mousefifo
+    
+day08
+1. 鼠标解读
+    0xfa&mouse_phase==0
 
 
 
