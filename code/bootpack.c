@@ -3,6 +3,8 @@
 extern struct FIFO8 keyfifo;
 extern struct FIFO8 mousefifo;
 
+unsigned int memtest(unsigned int start, unsigned int end);
+unsigned int memtest_sub(unsigned int start, unsigned int end);
 
 
 void yiPrintf(){
@@ -45,6 +47,13 @@ void HariMain(){
     int mx = 160,my = 100;
 	init_mouse_cursor8(mouse,COL8_008484);
 	putblock8_8(vram,xsize,16,16,mx,my,mouse,16);
+    
+    // 检查内存
+    unsigned int size = memtest(0x400000, 0xbfffffff)/1024/1024;
+    sprintf(s, "[memory %dM]",size);
+    boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 100, 310, 115);
+    putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 100, COL8_YELLOW, s);
+    
 
     unsigned char data;
 	for(;;){
@@ -112,3 +121,43 @@ void HariMain(){
     
     
 }
+
+#define EFLAGS_AC_BIT 0x40000
+#define CR0_CACHE_DISABLE 0x60000000
+
+
+
+
+unsigned int memtest(unsigned int start, unsigned int end) {
+    char flg486 = 0;
+    unsigned int eflg,cr0,i;
+    
+    eflg = io_load_eflags();
+    eflg |= EFLAGS_AC_BIT;
+    io_store_eflags(eflg);
+    eflg = io_load_eflags();
+    
+    if ((eflg & EFLAGS_AC_BIT)!=0){
+        flg486 = 1;
+    }
+    
+    eflg &= ~EFLAGS_AC_BIT;
+    io_store_eflags(eflg);
+    
+    if (flg486==1) {
+        cr0 = load_cr0();
+        cr0 |= CR0_CACHE_DISABLE;
+        store_cr0(cr0);
+    }
+    
+    i = memtest_sub(start,end);
+    
+    if (flg486 == 1) {
+        cr0 = load_cr0();
+        cr0 &= ~CR0_CACHE_DISABLE;
+        store_cr0(cr0);
+    }
+    
+    return i;
+}
+

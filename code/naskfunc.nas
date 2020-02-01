@@ -8,6 +8,8 @@
 	GLOBAL _io_load_eflags,_io_store_eflags
 	GLOBAL _load_gdtr,_load_idtr
     GLOBAL _asm_inthandler21,_asm_inthandler2c,_asm_inthandler27
+    GLOBAL _load_cr0,_store_cr0
+    GLOBAL _memtest_sub
 
 	
 [SECTION .text]
@@ -139,3 +141,59 @@ _asm_inthandler27:
     pop es
     pop ds
     iret
+
+
+_load_cr0:
+    mov eax,cr0
+    ret
+    
+    
+_store_cr0:
+    mov eax,[esp+4]
+    mov cr0,eax
+    ret
+
+
+_memtest_sub:
+    push ebx
+    push esi
+    push edi
+    
+    mov esi,0xaa55aa55
+    mov edi,0x55aa55aa
+    
+    mov eax,[esp+12+4]
+    
+mts_loop:
+    mov edx,eax
+    add edx,0xffc
+
+    mov ebx,[edx] ;old
+    mov [edx],esi
+    xor dword [edx],0xffffffff
+    cmp [edx],edi
+    jne mts_fin
+    xor dword [edx],0xffffffff
+    cmp [edx],esi
+    jne mts_fin
+    mov [edx],ebx
+    
+    add eax,0x1000
+    cmp eax,[esp+12+8]
+    jbe mts_loop
+    
+    pop edi
+    pop esi
+    pop ebx
+    ret
+    
+    
+    
+    
+mts_fin:
+    mov [edx],ebx
+    pop edi
+    pop esi
+    pop ebx
+    ret
+

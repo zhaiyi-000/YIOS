@@ -70,6 +70,9 @@ void asm_inthandler21(void);
 void asm_inthandler2c(void);
 void asm_inthandler27(void);
 
+int load_cr0(void);
+void store_cr0(int data);
+
 
 
 // dsctbl.c gdt idt 相关

@@ -317,3 +317,48 @@ day08
     resb 8
     
 
+day09
+2. 内存容量检查
+    unsigned int memtest(unsigned int start, unsigned int end)
+        char flg486
+        unsigned int eflg,cr0,i
+        eflg |= 0x40000
+        再把eflg的第18位置为零
+        
+        cr0 = load_cr0();
+        cr0 |= 0x60000000
+        store_cr0
+        
+        i = memtest_sub(strat,end)
+        
+        if(flg486!=0){
+            cr0 = load_cr0();
+            cr0 &= ~CR0_CACHE_DISABLE
+            store_cr0
+        }
+        
+        return i;
+        
+    _load_cr0:
+    _store_cr0:
+    unsigned int memtest_sub(start, end)
+        unsigned int i,*p,old,pat0=0xaa55aa55, pat1=0x55aa55aa;
+        for(i+=4){
+            p = (unsigned int *)i;
+            old = *p
+            *p = pat0;
+            *p ^= 0xffffffff
+            if
+        }
+        
+    memtest(0x400000, 0xbfffffff)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
