@@ -83,7 +83,7 @@ unsigned int memman_alloc(struct MEMMAN *man,unsigned int size) {
             return a;
         }
     }
-    return -1;
+    return 0;
 }
 int memman_free(struct MEMMAN *man,unsigned int addr,unsigned int size){
     int i,j;

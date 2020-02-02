@@ -37,7 +37,7 @@ void set_palette(int start, int end, unsigned char *rgb) {
 	io_store_eflags(flag);
 }
 
-void init_screen(unsigned char *vram, int xsize, int ysize) {
+void init_screen8(unsigned char *vram, int xsize, int ysize) {
 
 	boxfill8(vram, xsize, COL8_008484,  0,         0,          xsize -  1, ysize - 29);
 	boxfill8(vram, xsize, COL8_C6C6C6,  0,         ysize - 28, xsize -  1, ysize - 28);
@@ -84,7 +84,7 @@ void putfont8(unsigned char *vram, int xsize, int x, int y, int c, char *font) {
 	}
 }
 
-void putfont8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s) {
+void putfonts8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s) {
 	extern char hankaku[4096];
 	for (;*s!=0;s++) {
 		putfont8(vram,xsize,x,y,c,hankaku+(*s)*16);

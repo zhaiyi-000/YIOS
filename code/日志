@@ -125,7 +125,7 @@ day05
 	vram
 	xsize
 	ysize
-	init_screen函数
+	init_screen8函数
 
 4. 显示字符
 	putfont8(vram,xsize,x,y,c,font)
@@ -134,7 +134,7 @@ day05
 	extern char hankaku[4096];
 
 6. 显示字符串
-	putfont8_asc(vram,xsize,x,y,c,s)
+	putfonts8_asc(vram,xsize,x,y,c,s)
 
 7. 显示变量值
 	sprintf()
@@ -367,8 +367,41 @@ day09
     unsigned int memman_total(man)
     unsigned int memman_alloc(man,size)
     int memman_free(nan,addr,size)
+    
+day10
+2. 叠加处理
+    sheet_setbuf(struct sheet *sht, unsigned char *buf, int xsize, int ysize,int col_inv)
+        sht->buf
+            bxsize
+            bysize
+            col_int
+        return
+    sheet_updown(ctl,sht,height)
+        int h,old = sht->height;
+        height > ctl->top+1 或 < -1
+        sht->height = height;
         
         
+    main
+        struct shtctl *shtctl
+        struct sheet *sht_back,*sht_mouse
+        unsigned char *buf_back,buf_mouse[256];
+        
+        shtctl = shtctl_init()
+        sht_back = sheet_alloc(shtctl)
+        sht_mouse = sheet_alloc(shtctl)
+        buf_back = 申请内存
+        sheet_setbuf(sht_back, buf_back, ,,-1)//没有透明色
+        sheet_setbuf(sht_mouse, buf_mouse,16,16,99)//透明色99
+        
+        init_screen8
+        init_mouse_cursor8
+        sheet_slide(shtctl, sht_back, 0,0)
+        
+        sheet_updown(,sht_back,0)
+        sheet_updown(,sht_mouse,0)
+        
+        sheet_refresh(shtctl);
         
         
         
