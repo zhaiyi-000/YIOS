@@ -8,7 +8,7 @@
 
 #include "bootpack.h"
 
-
+void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1);
 
 struct SHTCTL *shtctl_init(struct MEMMAN *memman, unsigned char *vram, int xsize, int ysize) {
     int i;
@@ -97,12 +97,39 @@ void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height) {
         }
     }
     
-    sheet_refresh(ctl);
+    sheet_refreshsub(ctl, sht->vx0, sht->vy0, sht->vx0+sht->bxsize, sht->vy0+sht->bysize);
     
 }
 
 
-void sheet_refresh(struct SHTCTL *ctl){
+void sheet_refresh(struct SHTCTL *ctl, struct SHEET *sht, int bx0, int by0, int bx1, int by1) {
+    if (sht->height >= 0) {
+        sheet_refreshsub(ctl, sht->vx0+bx0, sht->vy0+by0, sht->vx0+bx1, sht->vy0+by1);
+    }
+}
+
+
+void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0,int vy0){
+    int oldx = sht->vx0,oldy = sht->vy0;
+    
+    sht->vx0 = vx0;
+    sht->vy0 = vy0;
+    if (sht->height >= 0) {
+        sheet_refreshsub(ctl, oldx, oldy, oldx+sht->bxsize, oldy+sht->bysize);
+        sheet_refreshsub(ctl, vx0, vy0, vx0+sht->bxsize, vy0+sht->bysize);
+    }
+}
+
+
+void sheet_free(struct SHTCTL *ctl, struct SHEET *sht){
+    if (sht->height >= 0) {
+        sheet_updown(ctl, sht, -1);
+    }
+    sht->flags = 0;
+}
+
+
+void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1) {
     int i,bx,by,vx,vy;
     unsigned char *buf,c,*vram = ctl->vram;
     struct SHEET *sht;
@@ -117,30 +144,14 @@ void sheet_refresh(struct SHTCTL *ctl){
             for (bx = 0; bx < sht->bxsize; bx++) {
                 vx = sht->vx0+bx;
                 
-                c = buf[by*sht->bxsize+bx];
-                if (c != sht->col_inv) {
-                    vram[vy*ctl->xsize+vx] = c;
+                if (vx0 <= vx && vx <= vx1 && vy0 <= vy && vy <= vy1) {
+                    c = buf[by*sht->bxsize+bx];
+                    if (c != sht->col_inv) {
+                        vram[vy*ctl->xsize+vx] = c;
+                    }
                 }
                 
             }
         }
     }
 }
-
-
-void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0,int vy0){
-    sht->vx0 = vx0;
-    sht->vy0 = vy0;
-    if (sht->height >= 0) {
-        sheet_refresh(ctl);
-    }
-}
-
-
-void sheet_free(struct SHTCTL *ctl, struct SHEET *sht){
-    if (sht->height >= 0) {
-        sheet_updown(ctl, sht, -1);
-    }
-    sht->flags = 0;
-}
-

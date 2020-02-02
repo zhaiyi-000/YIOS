@@ -15,7 +15,6 @@ void HariMain(){
 
     char s[100];
 	struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
-	unsigned char *vram = bInfo->vram;
 	int xsize = bInfo->scrnx;
 	int ysize = bInfo->scrny;
     char keyBuf__[32];
@@ -59,6 +58,7 @@ void HariMain(){
     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 0, 310, 18);
 	putfonts8_asc(buf_back, xsize,1,1,COL8_YELLOW,"HELLO YIOS");
 	putfonts8_asc(buf_back, xsize,0,0,COL8_YELLOW,"HELLO YIOS");
+    sheet_refresh(shtctl, sht_back, 0, 0, 310, 18);
 
 
 	//鼠标
@@ -71,11 +71,11 @@ void HariMain(){
     sprintf(s, "[total %dM, free %dK]",memtotal/1024/1024,memman_total(memman)/1024);
     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 100, 310, 115);
     putfonts8_asc(buf_back, bInfo->scrnx, 0, 100, COL8_YELLOW, s);
+    sheet_refresh(shtctl, sht_back, 0, 100, 310, 115);
     
 
     sheet_slide(shtctl, sht_back, 0, 0);
     sheet_slide(shtctl, sht_mouse, mx, my);
-    sheet_refresh(shtctl);
     
     unsigned char data;
 	for(;;){
@@ -91,7 +91,8 @@ void HariMain(){
                 struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
                 boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 40, 310, 56);
                 putfonts8_asc(buf_back, bInfo->scrnx, 0, 40, COL8_YELLOW, s);
-                sheet_refresh(shtctl);
+                sheet_refresh(shtctl, sht_back, 0, 40, 310, 56);
+                
             }else if(fifo8_status(&mousefifo)!=0){
                 data = fifo8_get(&mousefifo);
                 io_sti();
@@ -113,7 +114,7 @@ void HariMain(){
                     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
                     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 60, 310, 76);
                     putfonts8_asc(buf_back, bInfo->scrnx, 0, 60, COL8_YELLOW, s);
-                    
+                    sheet_refresh(shtctl, sht_back, 0, 60, 310, 76);
                     
                     mx+=mdec.x;
                     my+=mdec.y;
@@ -134,6 +135,7 @@ void HariMain(){
                     sprintf(s, "[zuobiao %3d %3d]",mx,my);
                     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 80, 310, 96);
                     putfonts8_asc(buf_back, bInfo->scrnx, 0, 80, COL8_YELLOW, s);
+                    sheet_refresh(shtctl, sht_back, 0, 80, 310, 96);
                     
                     sheet_slide(shtctl, sht_mouse, mx, my);
                 }
