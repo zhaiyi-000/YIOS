@@ -355,8 +355,18 @@ day09
         
         
         
-        
-        
+4. 挑战内存管理
+    MEMMAN_FREES 4090
+    
+    struct FREEINFO {unsigned int addr, size}
+    struct MEMMAN {int frees, maxfrees,lostsize,losts,
+                    struct FREEINFO free[MEMMAN_FREES]
+                    }
+    
+    memman_init(){frees, maxfrees,lostsize,losts = 0}
+    unsigned int memman_total(man)
+    unsigned int memman_alloc(man,size)
+    int memman_free(nan,addr,size)
         
         
         

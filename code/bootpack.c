@@ -3,8 +3,22 @@
 extern struct FIFO8 keyfifo;
 extern struct FIFO8 mousefifo;
 
+#define MEMMAN_FREES 4090
+
+struct FREEINFO {
+    unsigned int addr, size;
+};
+struct MEMMAN {
+    int frees, maxfrees,lostsize,losts;
+    struct FREEINFO free[MEMMAN_FREES];
+};
+
 unsigned int memtest(unsigned int start, unsigned int end);
 unsigned int memtest_sub(unsigned int start, unsigned int end);
+void memman_init(struct MEMMAN *man);
+unsigned int memman_total(struct MEMMAN *man);
+unsigned int memman_alloc(struct MEMMAN *man,unsigned int size);
+int memman_free(struct MEMMAN *man,unsigned int addr,unsigned int size);
 
 
 void yiPrintf(){
@@ -49,8 +63,15 @@ void HariMain(){
 	putblock8_8(vram,xsize,16,16,mx,my,mouse,16);
     
     // 检查内存
-    unsigned int size = memtest(0x400000, 0xbfffffff)/1024/1024;
-    sprintf(s, "[memory %dM]",size);
+    struct MEMMAN *memman = (struct MEMMAN *)0x3c0000;  //#define MEMMAN_ADDR 0x3c0000
+    unsigned int memtotal = memtest(0x400000, 0xbfffffff);
+    memman_init(memman);
+    memman_free(memman, 0x1000, 0x9e000);
+    memman_free(memman, 0x400000, memtotal-0x400000);
+    
+    
+    // free 29304=632k(1m-4k(0开头的BIOS)-4k(后面的BIOS)-384k(0xa0000-0xaffff  显存用的地方 64k  后面的320我就不知道是干啥的了))+28m
+    sprintf(s, "[total %dM, free %dK]",memtotal/1024/1024,memman_total(memman)/1024);
     boxfill8(bInfo->VRAM, bInfo->SCRNX, COL8_RED, 0, 100, 310, 115);
     putfont8_asc(bInfo->VRAM, bInfo->SCRNX, 0, 100, COL8_YELLOW, s);
     
@@ -161,3 +182,92 @@ unsigned int memtest(unsigned int start, unsigned int end) {
     return i;
 }
 
+
+
+void memman_init(struct MEMMAN *man){
+    man->frees = 0;
+    man->maxfrees = 0;
+    man->lostsize = 0;
+    man->losts = 0;
+}
+unsigned int memman_total(struct MEMMAN *man){
+    int i,total = 0;
+    for (i = 0; i < man->frees; i++) {
+        total += man->free[i].size;
+    }
+    return total;
+}
+unsigned int memman_alloc(struct MEMMAN *man,unsigned int size) {
+    int i;
+    unsigned int a;
+    for (i = 0; i < man->frees; i++) {
+        if (man->free[i].size>= size) {
+            a = man->free[i].addr;
+            man->free[i].addr += size;
+            man->free[i].size -= size;
+            
+            if (man->free[i].size==0) {
+                man->frees--;
+                for (; i < man->frees; i++) {
+                    man->free[i] = man->free[i+1];
+                }
+            }
+            return a;
+        }
+    }
+    return -1;
+}
+int memman_free(struct MEMMAN *man,unsigned int addr,unsigned int size){
+    int i,j;
+    for (i = 0; i < man->frees; i++) {
+        if (man->free[i].addr > addr) {
+            break;
+        }
+    }
+    
+//    i-1 < addr < i
+    
+    if (i >0 && man->free[i-1].addr + man->free[i-1].size == addr){
+        //前面有且可合并
+        man->free[i-1].size += size;
+        
+        if (i < man->frees && addr + size == man->free[i].addr) {
+            man->frees--;
+            man->free[i-1].size += man->free[i].size;
+            for (j = i; j < man->frees; j++) {
+                man->free[j] = man->free[j+1];
+            }
+        }
+        
+        return 0;
+    }
+    
+    if (i < man->frees && addr + size == man->free[i].addr) {
+        //后面有且可合并
+        man->free[i].addr -= size;
+        man->free[i].size += size;
+        
+        return 0;
+    }
+    
+    if (man->frees < MEMMAN_FREES) {
+        for (j = man->frees; j > i; j--) {  //这个地方要倒着来,不然有bug
+            man->free[j] = man->free[j-1];
+        }
+        man->frees++;
+        if (man->maxfrees < man->frees) {
+            man->maxfrees = man->frees;
+        }
+        
+        
+        man->free[i].addr = addr;
+        man->free[i].size = size;
+        
+        return 0;
+    }
+    
+    man->losts++;
+    man->lostsize+= size;
+    
+    return -1;
+}
