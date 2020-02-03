@@ -53,8 +53,9 @@ void HariMain(){
     putfonts8_asc(buf_win, 160, 0, 50, COL8_RED, "YIOS");
     
     sheet_updown(shtctl, sht_back, 0);
-    sheet_updown(shtctl, sht_mouse, 2);
     sheet_updown(shtctl, sht_win, 1);
+    sheet_updown(shtctl, sht_mouse, 2);
+    
 
     init_gdtidt();
     init_pic();
@@ -96,9 +97,9 @@ void HariMain(){
         
         count++;
         sprintf(s, "%d",count);
-        boxfill8(buf_win, bInfo->scrnx, COL8_RED, 50, 20, 310, 35);
-        putfonts8_asc(buf_win, bInfo->scrnx, 0, 20, COL8_YELLOW, s);
-        sheet_refresh(shtctl, sht_win, 0, 20, 310, 35);
+        boxfill8(buf_win, 160, COL8_RED, 0, 20, 150, 40);
+        putfonts8_asc(buf_win, 160, 0, 20, COL8_YELLOW, s);
+        sheet_refresh(shtctl, sht_win, 0, 20, 150, 40);
         
         
         io_cli();
