@@ -16,6 +16,7 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title);
 
 void HariMain(){
 
+    struct TIMER *timer;
     struct FIFO8 timerfifo;
     char s[100],keybuf[32],mousebuf[128],timerbuf[8];
 	struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
@@ -100,7 +101,9 @@ void HariMain(){
     sheet_slide(sht_mouse, mx, my);
     sheet_slide(sht_win, 80, 72);
     
-    settimer(200, &timerfifo, 1);
+    timer = timer_alloc();
+    timer_init(timer, &timerfifo, 0);
+    timer_settime(timer,50);
     
     unsigned char data;
 	for(;;){
@@ -169,10 +172,15 @@ void HariMain(){
                 data = fifo8_get(&timerfifo);
                 io_sti();
                 
-                sprintf(s, "[10s]");
-                boxfill8(buf_win, 160, COL8_RED, 0, 20, 310, 36);
-                putfonts8_asc(buf_win, 160, 0, 20, COL8_YELLOW, s);
-                sheet_refresh( sht_win, 0, 20, 310, 36);
+                if (data==0) {
+                    timer_init(timer, &timerfifo, 1);
+                    boxfill8(buf_back, xsize, COL8_RED, 0, 20, 310, 36);
+                }else{
+                    timer_init(timer, &timerfifo, 0);
+                    boxfill8(buf_back, xsize, COL8_YELLOW, 0, 20, 310, 36);
+                }
+                timer_settime(timer, 50);
+                sheet_refresh( sht_back, 0, 20, 310, 36);
             }
         }
 	}
