@@ -416,3 +416,11 @@ day11
     输出语句 "YIOS"
     sheet_slide(sht_win,80,72)
     sheet_updown
+
+6. 高速计数器
+    申明count
+    
+    count++;
+    显示出来
+    sheet_refresh
+    关闭hlt

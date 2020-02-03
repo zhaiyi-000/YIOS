@@ -23,6 +23,7 @@ void HariMain(){
     char mouseBuf__[128];
     fifo8_init(&keyfifo, 32, keyBuf__);
     fifo8_init(&mousefifo, 128, mouseBuf__);
+    unsigned int count = 0;
     
     
     // 检查内存
@@ -92,9 +93,17 @@ void HariMain(){
     
     unsigned char data;
 	for(;;){
+        
+        count++;
+        sprintf(s, "%d",count);
+        boxfill8(buf_win, bInfo->scrnx, COL8_RED, 50, 20, 310, 35);
+        putfonts8_asc(buf_win, bInfo->scrnx, 0, 20, COL8_YELLOW, s);
+        sheet_refresh(shtctl, sht_win, 0, 20, 310, 35);
+        
+        
         io_cli();
         if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo)==0) {
-            io_stihlt();
+            io_sti();
         }else{
             if (fifo8_status(&keyfifo)!=0) {
                 data = fifo8_get(&keyfifo);
