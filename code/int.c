@@ -23,16 +23,9 @@ void init_pic(void) {
     io_out8(PIC1_ICW3, 2);  //pic1由irq2接受
     io_out8(PIC1_ICW4, 0x1);
     
-    //io_out8(PIC0_IMR, 0xfb);  //除了2号以外全部屏幕 2号是从pic
-    //io_out8(PIC1_IMR, 0xff);
+    io_out8(PIC0_IMR, 0xfb);  //除了2号以外全部屏幕 2号是从pic
+    io_out8(PIC1_IMR, 0xff);
     
-    io_out8(PIC0_IMR, 0xf9);
-    io_out8(PIC1_IMR, 0xef);
-    
-    struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR    *) 0x0026f800;
-    set_gatedesc(idt + 0x21, (int)asm_inthandler21, 16, 0x8e);
-    set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 16, 0x8e);
-    set_gatedesc(idt + 0x27, (int)asm_inthandler27, 16, 0x8e);
 }
 
 struct FIFO8 keyfifo;

@@ -62,7 +62,10 @@ void HariMain(){
     io_sti();   //这个地方产生了一个bug,调试了好久.....
 	init_palette();
 	init_screen8(buf_back, xsize, ysize);
+    init_pit();
 
+    io_out8(PIC0_IMR, 0xf8);
+    io_out8(PIC1_IMR, 0xef);
     
     struct MOUSE_DEC mdec;
     init_keyboard();

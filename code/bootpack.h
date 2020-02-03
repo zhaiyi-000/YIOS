@@ -190,3 +190,7 @@ void sheet_refresh(struct SHEET *sht, int bx0, int by0, int bx1, int by1);
 void sheet_slide(struct SHEET *sht, int vx0, int vy0);
 void sheet_free(struct SHEET *sht);
 
+
+//timer.c
+void init_pit(void);
+void asm_inthandler20(void);

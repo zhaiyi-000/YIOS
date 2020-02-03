@@ -21,6 +21,11 @@ void init_gdtidt(void)
 		set_gatedesc(idt + i, 0, 0, 0);
 	}
 	load_idtr(0x7ff, 0x0026f800);
+    
+    set_gatedesc(idt + 0x21, (int)asm_inthandler21, 16, 0x8e);
+    set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 16, 0x8e);
+    set_gatedesc(idt + 0x27, (int)asm_inthandler27, 16, 0x8e);
+    set_gatedesc(idt + 0x20, (int)asm_inthandler20, 16, 0x8e);
 
 	return;
 }
