@@ -125,11 +125,11 @@ void HariMain(){
                     if (my < 0) {
                         my = 0;
                     }
-                    if (mx > bInfo->scrnx - 16) {
-                        mx = bInfo->scrnx - 16;
+                    if (mx > bInfo->scrnx - 1) {
+                        mx = bInfo->scrnx - 1;
                     }
-                    if (my > bInfo->scrny - 16) {
-                        my = bInfo->scrny - 16;
+                    if (my > bInfo->scrny - 1) {
+                        my = bInfo->scrny - 1;
                     }
                     
                     sprintf(s, "[zuobiao %3d %3d]",mx,my);

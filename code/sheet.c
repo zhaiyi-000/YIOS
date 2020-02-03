@@ -80,6 +80,8 @@ void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height) {
             ctl->top--;
         }
         
+        sheet_refreshsub(ctl, sht->vx0, sht->vy0, sht->vx0+sht->bxsize, sht->vy0+sht->bysize);
+        
     } else if (height > old){
         if (old >= 0) {
             for (i = old; i < height; i++) {
@@ -95,9 +97,11 @@ void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height) {
             }
             ctl->sheets[height] = sht;
         }
+        
+        sheet_refreshsub(ctl, sht->vx0, sht->vy0, sht->vx0+sht->bxsize, sht->vy0+sht->bysize);
     }
     
-    sheet_refreshsub(ctl, sht->vx0, sht->vy0, sht->vx0+sht->bxsize, sht->vy0+sht->bysize);
+    
     
 }
 
@@ -133,6 +137,19 @@ void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1) {
     int i,bx,by,vx,vy,bx0,by0,bx1,by1;
     unsigned char *buf,c,*vram = ctl->vram;
     struct SHEET *sht;
+    
+    if (vx0 < 0) {  //因为这个会绘制到下一行或者上一行去
+        vx0 = 0;
+    }
+    if (vy0 < 0) {
+        vy0 = 0;
+    }
+    if (vx1 > ctl->xsize) {
+        vx1 = ctl->xsize;
+    }
+    if (vy0 > ctl->ysize) {
+        vy0 = ctl->ysize;
+    }
     
     for (i = 0; i <= ctl->top; i++) {
         sht = ctl->sheets[i];
