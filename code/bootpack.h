@@ -192,5 +192,9 @@ void sheet_free(struct SHEET *sht);
 
 
 //timer.c
+struct TIMECTL {
+    unsigned int count;
+};
+
 void init_pit(void);
 void asm_inthandler20(void);

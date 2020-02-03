@@ -2,6 +2,7 @@
 
 extern struct FIFO8 keyfifo;
 extern struct FIFO8 mousefifo;
+extern struct TIMECTL timerctl;
 
 
 
@@ -99,7 +100,7 @@ void HariMain(){
 	for(;;){
         
         count++;
-        sprintf(s, "%d",count);
+        sprintf(s, "%d",timerctl.count);
         boxfill8(buf_win, 160, COL8_RED, 0, 20, 150, 40);
         putfonts8_asc(buf_win, 160, 0, 20, COL8_YELLOW, s);
         sheet_refresh( sht_win, 0, 20, 150, 40);
