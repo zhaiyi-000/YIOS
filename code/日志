@@ -424,3 +424,15 @@ day11
     显示出来
     sheet_refresh
     关闭hlt
+    
+8. 消除闪烁2
+    shtctl 中添加属性 map
+    为ctl->map申请内存
+        如果申请失败,释放shtctl并跳转到错误
+    sheet_refreshmap(ctl, vx0, vy0, vx1,vy1, h0)
+        sid = ctl->sheets0
+        map[vy*ctl->xsize+vx] = sid;
+    sheet_refresh
+        增加h1参数
+        计算sid
+        如果sid==map[],则绘制

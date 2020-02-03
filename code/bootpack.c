@@ -52,9 +52,9 @@ void HariMain(){
     putfonts8_asc(buf_win, 160, 0, 30, COL8_RED, "welcom to");
     putfonts8_asc(buf_win, 160, 0, 50, COL8_RED, "YIOS");
     
-    sheet_updown(shtctl, sht_back, 0);
-    sheet_updown(shtctl, sht_win, 1);
-    sheet_updown(shtctl, sht_mouse, 2);
+    sheet_updown(sht_back, 0);
+    sheet_updown(sht_win, 1);
+    sheet_updown(sht_mouse, 2);
     
 
     init_gdtidt();
@@ -72,7 +72,7 @@ void HariMain(){
     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 0, 310, 18);
 	putfonts8_asc(buf_back, xsize,1,1,COL8_YELLOW,"HELLO YIOS");
 	putfonts8_asc(buf_back, xsize,0,0,COL8_YELLOW,"HELLO YIOS");
-    sheet_refresh(shtctl, sht_back, 0, 0, 310, 18);
+    sheet_refresh(sht_back, 0, 0, 310, 18);
 
 
 	//鼠标
@@ -85,12 +85,12 @@ void HariMain(){
     sprintf(s, "[total %dM, free %dK]",memtotal/1024/1024,memman_total(memman)/1024);
     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 100, 310, 115);
     putfonts8_asc(buf_back, bInfo->scrnx, 0, 100, COL8_YELLOW, s);
-    sheet_refresh(shtctl, sht_back, 0, 100, 310, 115);
+    sheet_refresh(sht_back, 0, 100, 310, 115);
     
 
-    sheet_slide(shtctl, sht_back, 0, 0);
-    sheet_slide(shtctl, sht_mouse, mx, my);
-    sheet_slide(shtctl, sht_win, 80, 72);
+    sheet_slide(sht_back, 0, 0);
+    sheet_slide(sht_mouse, mx, my);
+    sheet_slide(sht_win, 80, 72);
     
     unsigned char data;
 	for(;;){
@@ -99,7 +99,7 @@ void HariMain(){
         sprintf(s, "%d",count);
         boxfill8(buf_win, 160, COL8_RED, 0, 20, 150, 40);
         putfonts8_asc(buf_win, 160, 0, 20, COL8_YELLOW, s);
-        sheet_refresh(shtctl, sht_win, 0, 20, 150, 40);
+        sheet_refresh( sht_win, 0, 20, 150, 40);
         
         
         io_cli();
@@ -114,7 +114,7 @@ void HariMain(){
                 struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
                 boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 40, 310, 56);
                 putfonts8_asc(buf_back, bInfo->scrnx, 0, 40, COL8_YELLOW, s);
-                sheet_refresh(shtctl, sht_back, 0, 40, 310, 56);
+                sheet_refresh( sht_back, 0, 40, 310, 56);
                 
             }else if(fifo8_status(&mousefifo)!=0){
                 data = fifo8_get(&mousefifo);
@@ -137,7 +137,7 @@ void HariMain(){
                     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
                     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 60, 310, 76);
                     putfonts8_asc(buf_back, bInfo->scrnx, 0, 60, COL8_YELLOW, s);
-                    sheet_refresh(shtctl, sht_back, 0, 60, 310, 76);
+                    sheet_refresh( sht_back, 0, 60, 310, 76);
                     
                     mx+=mdec.x;
                     my+=mdec.y;
@@ -158,9 +158,9 @@ void HariMain(){
                     sprintf(s, "[zuobiao %3d %3d]",mx,my);
                     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 80, 310, 96);
                     putfonts8_asc(buf_back, bInfo->scrnx, 0, 80, COL8_YELLOW, s);
-                    sheet_refresh(shtctl, sht_back, 0, 80, 310, 96);
+                    sheet_refresh( sht_back, 0, 80, 310, 96);
                     
-                    sheet_slide(shtctl, sht_mouse, mx, my);
+                    sheet_slide( sht_mouse, mx, my);
                 }
             }
         }
