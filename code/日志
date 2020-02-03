@@ -405,3 +405,14 @@ day10
         
         
         
+day11
+4. 显示窗口
+    申明sht_win,buf_win
+    申请sheet
+    申请内存(160*68)
+    sheet_setbuf 没有透明色
+    make_window8
+    输出语句 "Welcome to"
+    输出语句 "YIOS"
+    sheet_slide(sht_win,80,72)
+    sheet_updown
