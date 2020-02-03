@@ -16,28 +16,34 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title);
 
 void HariMain(){
 
-    char s[100];
+    struct FIFO8 timerfifo;
+    char s[100],keybuf[32],mousebuf[128],timerbuf[8];
 	struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
 	int xsize = bInfo->scrnx;
 	int ysize = bInfo->scrny;
-    char keyBuf__[32];
-    char mouseBuf__[128];
-    fifo8_init(&keyfifo, 32, keyBuf__);
-    fifo8_init(&mousefifo, 128, mouseBuf__);
-    unsigned int count = 0;
-    
-    
-    // 检查内存
-    struct MEMMAN *memman = (struct MEMMAN *)0x3c0000;  //#define MEMMAN_ADDR 0x3c0000
-    unsigned int memtotal = memtest(0x400000, 0xbfffffff);
-    memman_init(memman);
-    memman_free(memman, 0x1000, 0x9e000);
-    memman_free(memman, 0x400000, memtotal-0x400000);
+    unsigned int memtotal;
+    struct MEMMAN *memman;
+    struct MOUSE_DEC mdec;
     
     //初始化图册相关
     struct SHTCTL *shtctl;
     struct SHEET *sht_back,*sht_mouse,*sht_win;
     unsigned char *buf_back,buf_mouse[256],*buf_win;
+    
+    
+    fifo8_init(&keyfifo, 32, keybuf);
+    fifo8_init(&mousefifo, 128, mousebuf);
+    fifo8_init(&timerfifo, 8, timerbuf);
+    
+    
+    // 检查内存
+    memman = (struct MEMMAN *)0x3c0000;  //#define MEMMAN_ADDR 0x3c0000
+    memtotal = memtest(0x400000, 0xbfffffff);
+    memman_init(memman);
+    memman_free(memman, 0x1000, 0x9e000);
+    memman_free(memman, 0x400000, memtotal-0x400000);
+    
+    
     shtctl = shtctl_init(memman, bInfo->vram, bInfo->scrnx, bInfo->scrny);
     sht_back = sheet_alloc(shtctl);
     sht_mouse = sheet_alloc(shtctl);
@@ -68,7 +74,6 @@ void HariMain(){
     io_out8(PIC0_IMR, 0xf8);
     io_out8(PIC1_IMR, 0xef);
     
-    struct MOUSE_DEC mdec;
     init_keyboard();
     enable_mouse(&mdec);
     
@@ -80,7 +85,6 @@ void HariMain(){
 
 
 	//鼠标
-//	char mouse[256];
     int mx = 160,my = 100;
 	init_mouse_cursor8(buf_mouse,99);
     
@@ -96,18 +100,13 @@ void HariMain(){
     sheet_slide(sht_mouse, mx, my);
     sheet_slide(sht_win, 80, 72);
     
+    settimer(200, &timerfifo, 1);
+    
     unsigned char data;
 	for(;;){
         
-        count++;
-        sprintf(s, "%d",timerctl.count);
-        boxfill8(buf_win, 160, COL8_RED, 0, 20, 150, 40);
-        putfonts8_asc(buf_win, 160, 0, 20, COL8_YELLOW, s);
-        sheet_refresh( sht_win, 0, 20, 150, 40);
-        
-        
         io_cli();
-        if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo)==0) {
+        if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) +fifo8_status(&timerfifo) ==0) {
             io_sti();
         }else{
             if (fifo8_status(&keyfifo)!=0) {
@@ -166,6 +165,14 @@ void HariMain(){
                     
                     sheet_slide( sht_mouse, mx, my);
                 }
+            }else if(fifo8_status(&timerfifo)!=0){
+                data = fifo8_get(&timerfifo);
+                io_sti();
+                
+                sprintf(s, "[10s]");
+                boxfill8(buf_win, 160, COL8_RED, 0, 20, 310, 36);
+                putfonts8_asc(buf_win, 160, 0, 20, COL8_YELLOW, s);
+                sheet_refresh( sht_win, 0, 20, 310, 36);
             }
         }
 	}

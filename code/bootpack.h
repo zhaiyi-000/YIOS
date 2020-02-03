@@ -1,6 +1,7 @@
 #include <stdio.h>  //可以解决关于 sprintf 的警告
 
 #define ADR_BOOTINFO 0xff0
+void yiPrintf(char *chs);
 
 // graphic.c 调色板和屏幕初始化相关
 #define COL8_BLACK			0
@@ -193,8 +194,11 @@ void sheet_free(struct SHEET *sht);
 
 //timer.c
 struct TIMECTL {
-    unsigned int count;
+    unsigned int count,timeout;
+    struct FIFO8 *fifo;
+    unsigned char data;
 };
 
 void init_pit(void);
 void asm_inthandler20(void);
+void settimer(unsigned int timeout, struct FIFO8 *fifo, unsigned char data);
