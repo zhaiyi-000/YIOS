@@ -58,7 +58,7 @@ void HariMain(){
     putfonts8_asc(buf_win, 160, 0, 50, COL8_RED, "YIOS");
     
     sheet_updown(sht_back, 0);
-//    sheet_updown(sht_win, 1);
+    sheet_updown(sht_win, 1);
     sheet_updown(sht_mouse, 2);
     
 
@@ -72,8 +72,8 @@ void HariMain(){
     io_out8(PIC0_IMR, 0xf8);
     io_out8(PIC1_IMR, 0xef);
     
-    init_keyboard();
-    enable_mouse(&mdec);
+    init_keyboard(&fifo,256);
+    enable_mouse(&fifo,256,&mdec);
     
 	//logo
     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 0, 310, 18);

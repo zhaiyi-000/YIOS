@@ -10,26 +10,28 @@
 
 void fifo32_init(struct FIFO32 *fifo,int size,int *buf){
     fifo->buf = buf;
-    fifo->left = 0;
-    fifo->right = 0;
+    fifo->p = 0;
+    fifo->q = 0;
     fifo->size = size;
     fifo->free = size;
     fifo->flags = 0;
 }
 
-void fifo32_put(struct FIFO32 *fifo,int data){
-    fifo->buf[fifo->right] = data;
-    fifo->right++;
-    if (fifo->right==fifo->size) {
-        fifo->right = 0;
+int fifo32_put(struct FIFO32 *fifo,int data){
+    fifo->buf[fifo->q] = data;
+    fifo->q++;
+    if (fifo->q==fifo->size) {
+        fifo->q = 0;
     }
     fifo->free--;
+    
+    return 0;
 }
 int fifo32_get(struct FIFO32 *fifo){
-    int data =fifo->buf[fifo->left];
-    fifo->left++;
-    if (fifo->left==fifo->size) {
-        fifo->left = 0;
+    int data =fifo->buf[fifo->p];
+    fifo->p++;
+    if (fifo->p==fifo->size) {
+        fifo->p = 0;
     }
     fifo->free++;
     return data;

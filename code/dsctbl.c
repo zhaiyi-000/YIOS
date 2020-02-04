@@ -3,7 +3,7 @@
 void init_gdtidt(void)
 {
 	
-	struct SEGMENT_DESCRITOR *gdt = (struct SEGMENT_DESCRITOR *)0x270000;
+	struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)0x270000;
 	struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR    *) 0x0026f800;
     int i;
 
@@ -30,7 +30,9 @@ void init_gdtidt(void)
 	return;
 }
 
-void set_segmdesc(struct SEGMENT_DESCRITOR *sd,int limit,int base, int ar) {
+
+// md 这个limit如果申请成int,在VMware中启动不了....    ccccccc   调了3个钟头.......................
+void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar) {
 	if (limit > 0xfffff) {
         limit/=0x1000;
         ar |= 0x8000;

@@ -9,6 +9,8 @@
 #include "bootpack.h"
 
 
+struct FIFO32 *keyfifo;
+int keydata0;
 
 void wait_KBC_sendready(void) {
     for (; ; ) {
@@ -19,19 +21,21 @@ void wait_KBC_sendready(void) {
 }
 
         
-void init_keyboard(void){
+void init_keyboard(struct FIFO32 *fifo, int data0){
+    
+    keyfifo = fifo;
+    keydata0 = data0;
+    
     wait_KBC_sendready();
     io_out8(0x64, 0x60);
     wait_KBC_sendready();
     io_out8(0x60, 0x47);
 }
 
-extern struct FIFO32 fifo;
-
-void inthandler21(int esp){  //源代码写的是int *,先不管 21是键盘
+void inthandler21(int *esp){  //源代码写的是int *,先不管 21是键盘
     int data;
     
     io_out8(PIC0_OCW2, 0x61);
     data = io_in8(0x60);
-    fifo32_put(&fifo, data+256);
+    fifo32_put(keyfifo, data+keydata0);
 }

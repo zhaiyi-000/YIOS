@@ -1,6 +1,18 @@
 #include <stdio.h>  //可以解决关于 sprintf 的警告
 
 #define ADR_BOOTINFO 0xff0
+#define MEMMAN_ADDR            0x003c0000
+
+#define ADR_IDT            0x0026f800
+#define LIMIT_IDT        0x000007ff
+#define ADR_GDT            0x00270000
+#define LIMIT_GDT        0x0000ffff
+#define ADR_BOTPAK        0x00280000
+#define LIMIT_BOTPAK    0x0007ffff
+#define AR_DATA32_RW    0x4092
+#define AR_CODE32_ER    0x409a
+#define AR_INTGATE32    0x008e
+
 void yiPrintf(char *chs);
 
 // graphic.c 调色板和屏幕初始化相关
@@ -78,7 +90,7 @@ void store_cr0(int data);
 
 
 // dsctbl.c gdt idt 相关
-struct SEGMENT_DESCRITOR {
+struct SEGMENT_DESCRIPTOR {
     short limit_low,base_low;
     char base_mid,access_right,limit_high,base_high;
 };
@@ -91,7 +103,7 @@ struct GATE_DESCRIPTOR {
 
 
 void init_gdtidt(void);
-void set_segmdesc(struct SEGMENT_DESCRITOR *sd,int limit,int base, int ar);
+void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
 void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
 
 
@@ -120,27 +132,32 @@ void init_pic(void);
 // fifo32.c
 struct FIFO32 {
     int *buf;
-    int left,right,size,free,flags;
+    int p,q,size,free,flags;
 };
 
 void fifo32_init(struct FIFO32 *fifo,int size,int *buf);
-void fifo32_put(struct FIFO32 *fifo,int data);
+int fifo32_put(struct FIFO32 *fifo, int data);
 int fifo32_get(struct FIFO32 *fifo);
 int fifo32_status(struct FIFO32 *fifo);
 
 
 
-// mouse & keyboard
+/* keyboard.c */
+void inthandler21(int *esp);
+void wait_KBC_sendready(void);
+void init_keyboard(struct FIFO32 *fifo, int data0);
+#define PORT_KEYDAT        0x0060
+#define PORT_KEYCMD        0x0064
 
+/* mouse.c */
 struct MOUSE_DEC {
     unsigned char buf[3], phase;
     int x, y, btn;
 };
-
-void init_keyboard(void);
-void enable_mouse(struct MOUSE_DEC *mdec);
+void inthandler2c(int *esp);
+void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec);
 int mouse_decode(struct MOUSE_DEC *mdec, unsigned char dat);
-void wait_KBC_sendready(void);
+
 
 
 // memory.c
@@ -204,7 +221,7 @@ struct TIMER {
     int data;
 };
 
-struct TIMECTL {
+struct TIMERCTL {
     unsigned int count,next,using;
     struct TIMER *t0;
     struct TIMER timers0[MAX_TIMER];

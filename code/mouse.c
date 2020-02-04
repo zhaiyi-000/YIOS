@@ -8,9 +8,14 @@
 
 #include "bootpack.h"
 
+struct FIFO32 *mousefifo;
+int mousedata0;
 
-
-void enable_mouse(struct MOUSE_DEC *mdec) {
+void enable_mouse(struct FIFO32 *fifo, int data0, struct MOUSE_DEC *mdec) {
+    
+    mousefifo = fifo;
+    mousedata0 = data0;
+    
     wait_KBC_sendready();
     io_out8(0x64, 0xd4);
     wait_KBC_sendready();
@@ -49,7 +54,6 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char data){
     }
 }
 
-extern struct FIFO32 fifo;
 void inthandler2c(int *esp){  //源代码写的是int *,先不管  鼠标
     int data;
     
@@ -61,6 +65,6 @@ void inthandler2c(int *esp){  //源代码写的是int *,先不管  鼠标
     sprintf(s, "%08x",data);
     yiPrintf(s);
     
-    fifo32_put(&fifo, data+512);
+    fifo32_put(&mousefifo, data+mousedata0);
 }
 

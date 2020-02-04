@@ -9,7 +9,7 @@
 #include "bootpack.h"
 
 
-struct TIMECTL timerctl;
+struct TIMERCTL timerctl;
 
 void init_pit(void) {
     int i;
@@ -92,7 +92,7 @@ void timer_settime(struct TIMER *timer, unsigned int timeout){
 }
 
 
-void inthandler20(int esp) {
+void inthandler20(int* esp) {
     int i;
     struct TIMER *timer;
     

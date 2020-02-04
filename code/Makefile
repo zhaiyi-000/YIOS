@@ -75,12 +75,14 @@ run :
 
 install :
 	$(MAKE) img
-	$(IMGTOL) w a: haribote.img
+#	$(IMGTOL) w a: haribote.img
+	xcopy "c:\Users\sg\Desktop\YIOS\code\haribote.img" "z:\desktop\" /e/i/h/y
 
 clean :
 	-$(DEL) *.bin
 	-$(DEL) *.lst
 	-$(DEL) *.obj
+	-$(DEL) *.img
 	-$(DEL) bootpack.map
 	-$(DEL) bootpack.bim
 	-$(DEL) bootpack.hrb
