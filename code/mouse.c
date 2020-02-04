@@ -65,6 +65,6 @@ void inthandler2c(int *esp){  //源代码写的是int *,先不管  鼠标
     sprintf(s, "%08x",data);
     yiPrintf(s);
     
-    fifo32_put(&mousefifo, data+mousedata0);
+    fifo32_put(mousefifo, data+mousedata0);
 }
 

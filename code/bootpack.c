@@ -30,6 +30,15 @@ void HariMain(){
     struct SHEET *sht_back,*sht_mouse,*sht_win;
     unsigned char *buf_back,buf_mouse[256],*buf_win;
     
+    static char keytable[0x54] = {
+        0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0,   0,
+        'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '@', '[', 0,   0,   'A', 'S',
+        'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', ':', 0,   0,   ']', 'Z', 'X', 'C', 'V',
+        'B', 'N', 'M', ',', '.', '/', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
+        0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1',
+        '2', '3', '0', '.'
+    };
+    
     
     fifo32_init(&fifo, 128, fifobuf);
     
@@ -116,6 +125,12 @@ void HariMain(){
                 
                 sprintf(s, "jianpan %02X",data);
                 putfonts8_asc_sht(sht_back, 0, 40, COL8_YELLOW, COL8_RED, s, 20);
+                
+                if (data < 0x54 && keytable[data]!=0) {
+                    s[0] = keytable[data];
+                    s[1] = 0;
+                    putfonts8_asc_sht(sht_win, 0, 20, COL8_RED, COL8_YELLOW, s, 1);
+                }
                 
             }else if(512 <= data && data <= 767){
                 data-=512;
