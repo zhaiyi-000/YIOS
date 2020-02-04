@@ -133,7 +133,7 @@ void HariMain(){
                         s[1] = 'C';
                     }
                     
-                    putfonts8_asc_sht(sht_back, 0, 60, COL8_YELLOW, COL8_RED, s, 20);
+                    putfonts8_asc_sht(sht_back, 0, 60, COL8_YELLOW, COL8_RED, s, 30);
                     
                     mx+=mdec.x;
                     my+=mdec.y;
@@ -159,12 +159,12 @@ void HariMain(){
             }else if(data==0){
                 timer_init(timer, &fifo, 1);
                 boxfill8(buf_back, xsize, COL8_RED, 0, 20, 310, 36);
-//                timer_settime(timer, 50);
+                timer_settime(timer, 50);
                 sheet_refresh( sht_back, 0, 20, 310, 36);
             }else if(data==1){
                 timer_init(timer, &fifo, 0);
                 boxfill8(buf_back, xsize, COL8_YELLOW, 0, 20, 310, 36);
-//                timer_settime(timer, 50);
+                timer_settime(timer, 50);
                 sheet_refresh( sht_back, 0, 20, 310, 36);
             }
         }
