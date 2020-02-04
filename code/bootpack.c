@@ -13,6 +13,7 @@ void yiPrintf(char *chs){
 }
 
 void make_window8(unsigned char *buf, int xsize, int ysize, char *title);
+void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l);
 
 void HariMain(){
 
@@ -61,7 +62,7 @@ void HariMain(){
     putfonts8_asc(buf_win, 160, 0, 50, COL8_RED, "YIOS");
     
     sheet_updown(sht_back, 0);
-    sheet_updown(sht_win, 1);
+//    sheet_updown(sht_win, 1);
     sheet_updown(sht_mouse, 2);
     
 
@@ -92,9 +93,7 @@ void HariMain(){
     
     // free 29304=632k(1m-4k(0开头的BIOS)-4k(后面的BIOS)-384k(0xa0000-0xaffff  显存用的地方 64k  后面的320我就不知道是干啥的了))+28m
     sprintf(s, "[total %dM, free %dK]",memtotal/1024/1024,memman_total(memman)/1024);
-    boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 100, 310, 115);
-    putfonts8_asc(buf_back, bInfo->scrnx, 0, 100, COL8_YELLOW, s);
-    sheet_refresh(sht_back, 0, 100, 310, 115);
+    putfonts8_asc_sht(sht_back, 0, 100, COL8_YELLOW, COL8_RED, s, 30);
     
 
     sheet_slide(sht_back, 0, 0);
@@ -116,11 +115,7 @@ void HariMain(){
                 data = fifo8_get(&keyfifo);
                 io_sti();
                 sprintf(s, "jianpan %02X",data);
-                
-                struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
-                boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 40, 310, 56);
-                putfonts8_asc(buf_back, bInfo->scrnx, 0, 40, COL8_YELLOW, s);
-                sheet_refresh( sht_back, 0, 40, 310, 56);
+                putfonts8_asc_sht(sht_back, 0, 40, COL8_YELLOW, COL8_RED, s, 20);
                 
             }else if(fifo8_status(&mousefifo)!=0){
                 data = fifo8_get(&mousefifo);
@@ -140,10 +135,7 @@ void HariMain(){
                         s[1] = 'C';
                     }
                     
-                    struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
-                    boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 60, 310, 76);
-                    putfonts8_asc(buf_back, bInfo->scrnx, 0, 60, COL8_YELLOW, s);
-                    sheet_refresh( sht_back, 0, 60, 310, 76);
+                    putfonts8_asc_sht(sht_back, 0, 60, COL8_YELLOW, COL8_RED, s, 20);
                     
                     mx+=mdec.x;
                     my+=mdec.y;
@@ -162,9 +154,7 @@ void HariMain(){
                     }
                     
                     sprintf(s, "[zuobiao %3d %3d]",mx,my);
-                    boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 80, 310, 96);
-                    putfonts8_asc(buf_back, bInfo->scrnx, 0, 80, COL8_YELLOW, s);
-                    sheet_refresh( sht_back, 0, 80, 310, 96);
+                    putfonts8_asc_sht(sht_back, 0, 80, COL8_YELLOW, COL8_RED, s, 20);
                     
                     sheet_slide( sht_mouse, mx, my);
                 }
@@ -237,4 +227,10 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title)
         }
     }
     return;
+}
+
+void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l) {
+    boxfill8(sht->buf, sht->bxsize, b, x, y, x+8*l-1, y+15);
+    putfonts8_asc(sht->buf, sht->bxsize, x, y, c, s);
+    sheet_refresh( sht, x, y, x+l*8, y+16);   //因为里面是 < 不是<= ,所有是16不是15
 }
