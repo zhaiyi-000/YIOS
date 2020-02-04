@@ -61,7 +61,7 @@ void io_hlt(void);
 void io_cli(void);
 void io_sti(void);
 void io_stihlt(void);
-char io_in8(int port);
+int io_in8(int port);
 void io_out8(int addr, int data);
 int io_load_eflags(void);
 void io_store_eflags(int data);
@@ -117,16 +117,17 @@ void init_pic(void);
 //};
 
 
-// fifo8.c
-struct FIFO8 {
-    unsigned char *buf;
+// fifo32.c
+struct FIFO32 {
+    int *buf;
     int left,right,size,free,flags;
 };
 
-void fifo8_init(struct FIFO8 *fifo,int size,unsigned char *buf);
-void fifo8_put(struct FIFO8 *fifo,char data);
-int fifo8_get(struct FIFO8 *fifo);
-int fifo8_status(struct FIFO8 *fifo);
+void fifo32_init(struct FIFO32 *fifo,int size,int *buf);
+void fifo32_put(struct FIFO32 *fifo,int data);
+int fifo32_get(struct FIFO32 *fifo);
+int fifo32_status(struct FIFO32 *fifo);
+
 
 
 // mouse & keyboard
@@ -198,8 +199,8 @@ void sheet_free(struct SHEET *sht);
 
 struct TIMER {
     unsigned int timeout,flags;
-    struct FIFO8 *fifo;
-    unsigned char data;
+    struct FIFO32 *fifo;
+    int data;
 };
 
 struct TIMECTL {
@@ -211,7 +212,7 @@ struct TIMECTL {
 void init_pit(void);
 struct TIMER *timer_alloc(void);
 void timer_free(struct TIMER *timer);
-void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data);
+void timer_init(struct TIMER *timer, struct FIFO32 *fifo, int data);
 void timer_settime(struct TIMER *timer, unsigned int timeout);
 
 

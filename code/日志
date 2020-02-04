@@ -206,11 +206,11 @@ day07
     
 3/4. FIFO缓冲区
 5. 整理FIFO缓冲区
-    struct FIFO8{buf,left,right,size,free,flags}
-    fifo8_init(fifo,size,buf)
-    int fifo8_put(fifo,data)
-    int fifo8_get(fifo)
-    int fifo8_status(fifo)
+    struct FIFO32{buf,left,right,size,free,flags}
+    fifo32_init(fifo,size,buf)
+    int fifo32_put(fifo,data)
+    int fifo32_get(fifo)
+    int fifo32_status(fifo)
     
 6. 总算讲到鼠标了
     void wait_KBC_sendready(void)

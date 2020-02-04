@@ -49,3 +49,18 @@ int mouse_decode(struct MOUSE_DEC *mdec, unsigned char data){
     }
 }
 
+extern struct FIFO32 fifo;
+void inthandler2c(int *esp){  //源代码写的是int *,先不管  鼠标
+    int data;
+    
+    io_out8(PIC1_OCW2, 0x64);
+    io_out8(PIC0_OCW2, 0x62);
+    data = io_in8(0x60);
+    
+    char s[100];
+    sprintf(s, "%08x",data);
+    yiPrintf(s);
+    
+    fifo32_put(&fifo, data+512);
+}
+

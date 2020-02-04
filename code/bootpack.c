@@ -1,10 +1,7 @@
 #include "bootpack.h"
-
-extern struct FIFO8 keyfifo;
-extern struct FIFO8 mousefifo;
 extern struct TIMECTL timerctl;
 
-
+struct FIFO32 fifo;
 
 void yiPrintf(char *chs){
     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
@@ -18,8 +15,9 @@ void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int
 void HariMain(){
 
     struct TIMER *timer;
-    struct FIFO8 timerfifo;
-    char s[100],keybuf[32],mousebuf[128],timerbuf[8];
+    
+    char s[100];
+    int fifobuf[128];
 	struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
 	int xsize = bInfo->scrnx;
 	int ysize = bInfo->scrny;
@@ -33,9 +31,7 @@ void HariMain(){
     unsigned char *buf_back,buf_mouse[256],*buf_win;
     
     
-    fifo8_init(&keyfifo, 32, keybuf);
-    fifo8_init(&mousefifo, 128, mousebuf);
-    fifo8_init(&timerfifo, 8, timerbuf);
+    fifo32_init(&fifo, 128, fifobuf);
     
     
     // 检查内存
@@ -101,26 +97,28 @@ void HariMain(){
     sheet_slide(sht_win, 80, 72);
     
     timer = timer_alloc();
-    timer_init(timer, &timerfifo, 0);
+    timer_init(timer, &fifo, 0);
     timer_settime(timer,50);
     
-    unsigned char data;
+    int data;
 	for(;;){
         
         io_cli();
-        if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) +fifo8_status(&timerfifo) ==0) {
+        if (fifo32_status(&fifo) ==0) {
             io_sti();
         }else{
-            if (fifo8_status(&keyfifo)!=0) {
-                data = fifo8_get(&keyfifo);
-                io_sti();
+            
+            data = fifo32_get(&fifo);
+            io_sti();
+            
+            if (256 <= data && data <= 511) {
+                data-=256;
+                
                 sprintf(s, "jianpan %02X",data);
                 putfonts8_asc_sht(sht_back, 0, 40, COL8_YELLOW, COL8_RED, s, 20);
                 
-            }else if(fifo8_status(&mousefifo)!=0){
-                data = fifo8_get(&mousefifo);
-                io_sti();
-                
+            }else if(512 <= data && data <= 767){
+                data-=512;
                 if (mouse_decode(&mdec, data) != 0) {
                     
                     sprintf(s, "lcr %8X %8X",mdec.x,mdec.y);
@@ -158,18 +156,15 @@ void HariMain(){
                     
                     sheet_slide( sht_mouse, mx, my);
                 }
-            }else if(fifo8_status(&timerfifo)!=0){
-                data = fifo8_get(&timerfifo);
-                io_sti();
-                
-                if (data==0) {
-                    timer_init(timer, &timerfifo, 1);
-                    boxfill8(buf_back, xsize, COL8_RED, 0, 20, 310, 36);
-                }else{
-                    timer_init(timer, &timerfifo, 0);
-                    boxfill8(buf_back, xsize, COL8_YELLOW, 0, 20, 310, 36);
-                }
-                timer_settime(timer, 50);
+            }else if(data==0){
+                timer_init(timer, &fifo, 1);
+                boxfill8(buf_back, xsize, COL8_RED, 0, 20, 310, 36);
+//                timer_settime(timer, 50);
+                sheet_refresh( sht_back, 0, 20, 310, 36);
+            }else if(data==1){
+                timer_init(timer, &fifo, 0);
+                boxfill8(buf_back, xsize, COL8_YELLOW, 0, 20, 310, 36);
+//                timer_settime(timer, 50);
                 sheet_refresh( sht_back, 0, 20, 310, 36);
             }
         }
