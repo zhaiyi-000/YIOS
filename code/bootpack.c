@@ -24,7 +24,7 @@ void task_b_main(struct SHEET *sht_back) {
     char s[100];
     
     int fifobuf[128];
-    fifo32_init(&fifo, 128, fifobuf);
+    fifo32_init(&fifo, 128, fifobuf,0);
     
     timer1 = timer_alloc();
     timer_init(timer1, &fifo,1);
@@ -97,8 +97,7 @@ void HariMain(){
     };
     
     
-    fifo32_init(&fifo, 128, fifobuf);
-    
+    fifo32_init(&fifo, 128, fifobuf,0);
     
     shtctl = shtctl_init(memman, bInfo->vram, bInfo->scrnx, bInfo->scrny);
     sht_back = sheet_alloc(shtctl);
@@ -165,7 +164,8 @@ void HariMain(){
     timer_settime(timer2,2);
     
     //多任务
-    task_init(memman);
+    struct TASK *task_a = task_init(memman);
+    fifo.task = task_a;
     struct TASK *task_b = task_alloc();
     task_b->tss.esp = memman_alloc_4k(memman, 64*1024)+64*1024-8;
     task_b->tss.eip = (int)task_b_main;
@@ -184,6 +184,7 @@ void HariMain(){
         
         io_cli();
         if (fifo32_status(&fifo) ==0) {
+            task_sleep(task_a);
             io_sti();
         }else{
             
