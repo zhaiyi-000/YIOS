@@ -10,7 +10,7 @@
     GLOBAL _asm_inthandler21,_asm_inthandler2c,_asm_inthandler27,_asm_inthandler20
     GLOBAL _load_cr0,_store_cr0
     GLOBAL _memtest_sub
-    GLOBAL _load_tr,_taskswitch4,_taskswitch3
+    GLOBAL _load_tr,_farjmp
     
     EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20
 
@@ -222,11 +222,6 @@ _load_tr:
     ret
 
 
-_taskswitch4:
-    jmp 4*8:0
-    ret
-    
-
-_taskswitch3:
-    jmp 3*8:0
+_farjmp:
+    jmp far [esp+4]
     ret

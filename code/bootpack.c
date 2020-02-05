@@ -18,16 +18,16 @@ void yiPrintf(char *chs){
 
 void task_b_main() {
     
-    struct TIMER *timer;
+    struct TIMER *timer2;
     struct FIFO32 fifo;
     int data;
     
     int fifobuf[128];
     fifo32_init(&fifo, 128, fifobuf);
     
-    timer = timer_alloc();
-    timer_init(timer, &fifo, 5);
-    timer_settime(timer, 500);
+    timer2 = timer_alloc();
+    timer_init(timer2, &fifo, 2);
+    timer_settime(timer2, 2);
     
     
     for (; ; ) {
@@ -37,9 +37,9 @@ void task_b_main() {
         }else{
             data = fifo32_get(&fifo);
             io_sti();
-            if (data==5) {
-                yiPrintf("task3~~~");
-                taskswitch3();
+            if (data==2) {
+                farjmp(0,3*8);
+                timer_settime(timer2, 2);
             }
         }
         
@@ -59,7 +59,7 @@ void HariMain(){
     memman_free(memman, 0x1000, 0x9e000);
     memman_free(memman, 0x400000, memtotal-0x400000);
 
-    struct TIMER *timer,*timer5;
+    struct TIMER *timer,*timer2;
     
     char s[100];
     int fifobuf[128];
@@ -180,9 +180,9 @@ void HariMain(){
     timer_init(timer, &fifo, 0);
     timer_settime(timer,50);
     
-    timer5 =timer_alloc();
-    timer_init(timer5, &fifo, 5);
-    timer_settime(timer5,500);
+    timer2 =timer_alloc();
+    timer_init(timer2, &fifo, 2);
+    timer_settime(timer2,2);
     
     cursor_x = 8;
 	for(;;){
@@ -270,9 +270,9 @@ void HariMain(){
                 boxfill8(buf_win, sht_win->bxsize, COL8_WHITE, cursor_x, 30, cursor_x+2, 46);
                 timer_settime(timer, 50);
                 sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
-            }else if(data==5){
-                putfonts8_asc_sht(sht_back, 0, 140, COL8_YELLOW, COL8_RED, "[5s]", 20);
-                taskswitch4();
+            }else if(data==2){
+                farjmp(0,4*8);
+                timer_settime(timer2, 2);
             }
         }
 	}
