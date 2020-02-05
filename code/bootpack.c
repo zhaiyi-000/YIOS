@@ -1,4 +1,6 @@
 #include "bootpack.h"
+
+#define ADDR_SHTBACK 0xfec
 extern struct TIMECTL timerctl;
 
 struct FIFO32 fifo;
@@ -16,11 +18,17 @@ void yiPrintf(char *chs){
     putfonts8_asc(bInfo->vram, bInfo->scrnx, 0, 120, COL8_YELLOW, chs);
 }
 
+void make_window8(unsigned char *buf, int xsize, int ysize, char *title);
+void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l);
+void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
+
 void task_b_main() {
     
     struct TIMER *timer2;
     struct FIFO32 fifo;
     int data;
+    unsigned int count = 0;
+    char s[100];
     
     int fifobuf[128];
     fifo32_init(&fifo, 128, fifobuf);
@@ -29,8 +37,14 @@ void task_b_main() {
     timer_init(timer2, &fifo, 2);
     timer_settime(timer2, 2);
     
+    struct SHEET *sht_back = *(struct SHEET **)ADDR_SHTBACK;
+    
     
     for (; ; ) {
+        count++;
+        sprintf(s, "%d",count);
+        putfonts8_asc_sht(sht_back, 0, 140, COL8_YELLOW,COL8_RED , s, 10);
+        
         io_cli();
         if (fifo32_status(&fifo)==0) {
             io_stihlt();
@@ -46,9 +60,7 @@ void task_b_main() {
     }
 }
 
-void make_window8(unsigned char *buf, int xsize, int ysize, char *title);
-void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l);
-void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
+
 
 void HariMain(){
     
@@ -117,6 +129,7 @@ void HariMain(){
     
     shtctl = shtctl_init(memman, bInfo->vram, bInfo->scrnx, bInfo->scrny);
     sht_back = sheet_alloc(shtctl);
+    *((struct SHEET **)ADDR_SHTBACK) = sht_back;
     sht_mouse = sheet_alloc(shtctl);
     sht_win = sheet_alloc(shtctl);
     buf_back = (unsigned char *)memman_alloc_4k(memman, bInfo->scrnx* bInfo->scrny);
