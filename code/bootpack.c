@@ -183,6 +183,11 @@ void HariMain(){
                     putfonts8_asc_sht(sht_back, 0, 80, COL8_YELLOW, COL8_RED, s, 20);
                     
                     sheet_slide( sht_mouse, mx, my);
+                    
+                    if ((mdec.btn & 0x01) != 0) {
+                        /* 左ボタンを押していたら、sht_winを動かす */
+                        sheet_slide(sht_win, mx - 80, my - 8);
+                    }
                 }
             }else if(data==0){
                 timer_init(timer, &fifo, 1);
