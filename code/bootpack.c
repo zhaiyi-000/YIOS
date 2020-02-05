@@ -5,12 +5,13 @@ struct FIFO32 fifo;
 
 void yiPrintf(char *chs){
     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
-    boxfill8(bInfo->vram, bInfo->scrnx, COL8_RED, 0, 20, 310, 36);
-    putfonts8_asc(bInfo->vram, bInfo->scrnx, 0, 20, COL8_YELLOW, chs);
+    boxfill8(bInfo->vram, bInfo->scrnx, COL8_RED, 0, 120, 310, 136);
+    putfonts8_asc(bInfo->vram, bInfo->scrnx, 0, 120, COL8_YELLOW, chs);
 }
 
 void make_window8(unsigned char *buf, int xsize, int ysize, char *title);
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l);
+void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 
 void HariMain(){
 
@@ -29,6 +30,8 @@ void HariMain(){
     struct SHTCTL *shtctl;
     struct SHEET *sht_back,*sht_mouse,*sht_win;
     unsigned char *buf_back,buf_mouse[256],*buf_win;
+    int cursor_x;
+    int data;
     
     static char keytable[0x54] = {
         0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0,   0,
@@ -63,8 +66,9 @@ void HariMain(){
     
     make_window8(buf_win, 160, 68, "window");
     
-    putfonts8_asc(buf_win, 160, 0, 30, COL8_RED, "welcom to");
-    putfonts8_asc(buf_win, 160, 0, 50, COL8_RED, "YIOS");
+//    putfonts8_asc(buf_win, 160, 0, 30, COL8_RED, "welcom to");
+//    putfonts8_asc(buf_win, 160, 0, 50, COL8_RED, "YIOS");
+    make_textbox8(sht_win, 10, 30, sht_win->bxsize-20, 16, COL8_WHITE);
     
     sheet_updown(sht_back, 0);
     sheet_updown(sht_win, 1);
@@ -82,7 +86,7 @@ void HariMain(){
     io_out8(PIC1_IMR, 0xef);
     
     init_keyboard(&fifo,256);
-    enable_mouse(&fifo,256,&mdec);
+    enable_mouse(&fifo,512,&mdec);
     
 	//logo
     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 0, 310, 18);
@@ -103,13 +107,13 @@ void HariMain(){
 
     sheet_slide(sht_back, 0, 0);
     sheet_slide(sht_mouse, mx, my);
-    sheet_slide(sht_win, 80, 72);
+    sheet_slide(sht_win, 80, 172);
     
     timer = timer_alloc();
     timer_init(timer, &fifo, 0);
     timer_settime(timer,50);
     
-    int data;
+    cursor_x = 8;
 	for(;;){
         
         io_cli();
@@ -129,8 +133,17 @@ void HariMain(){
                 if (data < 0x54 && keytable[data]!=0) {
                     s[0] = keytable[data];
                     s[1] = 0;
-                    putfonts8_asc_sht(sht_win, 0, 20, COL8_RED, COL8_YELLOW, s, 1);
+                    putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_RED, COL8_YELLOW, s, 1);
+                    cursor_x+=8;
                 }
+                
+                if (data==0xe && cursor_x > 8) {
+                    boxfill8(buf_win, sht_win->bxsize, COL8_WHITE, cursor_x, 30, cursor_x+2, 46);
+                    sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
+                    cursor_x -= 8;
+                    putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_WHITE, COL8_WHITE, " ", 1);
+                }
+                
                 
             }else if(512 <= data && data <= 767){
                 data-=512;
@@ -173,14 +186,14 @@ void HariMain(){
                 }
             }else if(data==0){
                 timer_init(timer, &fifo, 1);
-                boxfill8(buf_back, xsize, COL8_RED, 0, 20, 310, 36);
+                boxfill8(buf_win, sht_win->bxsize, COL8_BLACK, cursor_x, 30, cursor_x+2, 46);
                 timer_settime(timer, 50);
-                sheet_refresh( sht_back, 0, 20, 310, 36);
+                sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
             }else if(data==1){
                 timer_init(timer, &fifo, 0);
-                boxfill8(buf_back, xsize, COL8_YELLOW, 0, 20, 310, 36);
+                boxfill8(buf_win, sht_win->bxsize, COL8_WHITE, cursor_x, 30, cursor_x+2, 46);
                 timer_settime(timer, 50);
-                sheet_refresh( sht_back, 0, 20, 310, 36);
+                sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
             }
         }
 	}
@@ -243,4 +256,20 @@ void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int
     boxfill8(sht->buf, sht->bxsize, b, x, y, x+8*l-1, y+15);
     putfonts8_asc(sht->buf, sht->bxsize, x, y, c, s);
     sheet_refresh( sht, x, y, x+l*8, y+16);   //因为里面是 < 不是<= ,所有是16不是15
+}
+
+
+void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c)
+{
+    int x1 = x0 + sx, y1 = y0 + sy;
+    boxfill8(sht->buf, sht->bxsize, COL8_848484, x0 - 2, y0 - 3, x1 + 1, y0 - 3);
+    boxfill8(sht->buf, sht->bxsize, COL8_848484, x0 - 3, y0 - 3, x0 - 3, y1 + 1);
+    boxfill8(sht->buf, sht->bxsize, COL8_FFFFFF, x0 - 3, y1 + 2, x1 + 1, y1 + 2);
+    boxfill8(sht->buf, sht->bxsize, COL8_FFFFFF, x1 + 2, y0 - 3, x1 + 2, y1 + 2);
+    boxfill8(sht->buf, sht->bxsize, COL8_000000, x0 - 1, y0 - 2, x1 + 0, y0 - 2);
+    boxfill8(sht->buf, sht->bxsize, COL8_000000, x0 - 2, y0 - 2, x0 - 2, y1 + 0);
+    boxfill8(sht->buf, sht->bxsize, COL8_C6C6C6, x0 - 2, y1 + 1, x1 + 0, y1 + 1);
+    boxfill8(sht->buf, sht->bxsize, COL8_C6C6C6, x1 + 1, y0 - 2, x1 + 1, y1 + 1);
+    boxfill8(sht->buf, sht->bxsize, c,           x0 - 1, y0 - 1, x1 + 0, y1 + 0);
+    return;
 }

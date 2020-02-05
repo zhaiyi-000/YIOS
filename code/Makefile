@@ -71,12 +71,12 @@ img :
 run :
 	$(MAKE) img
 	$(COPY) haribote.img ..\z_tools\qemu\fdimage0.bin
+	xcopy "c:\Users\sg\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
 	$(MAKE) -C ../z_tools/qemu
 
 install :
 	$(MAKE) img
-#	$(IMGTOL) w a: haribote.img
-	xcopy "c:\Users\sg\Desktop\YIOS\code\haribote.img" "z:\desktop\" /e/i/h/y
+	$(IMGTOL) w a: haribote.img
 
 clean :
 	-$(DEL) *.bin
