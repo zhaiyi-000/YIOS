@@ -86,6 +86,7 @@ void asm_inthandler27(void);
 void asm_inthandler20(void);
 void load_tr(int tr);
 void taskswitch4(void);
+void taskswitch3(void);
 
 int load_cr0(void);
 void store_cr0(int data);

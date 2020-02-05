@@ -17,9 +17,32 @@ void yiPrintf(char *chs){
 }
 
 void task_b_main() {
-    yiPrintf("task4~~~");
+    
+    struct TIMER *timer;
+    struct FIFO32 fifo;
+    int data;
+    
+    int fifobuf[128];
+    fifo32_init(&fifo, 128, fifobuf);
+    
+    timer = timer_alloc();
+    timer_init(timer, &fifo, 5);
+    timer_settime(timer, 500);
+    
+    
     for (; ; ) {
-        io_hlt();
+        io_cli();
+        if (fifo32_status(&fifo)==0) {
+            io_stihlt();
+        }else{
+            data = fifo32_get(&fifo);
+            io_sti();
+            if (data==5) {
+                yiPrintf("task3~~~");
+                taskswitch3();
+            }
+        }
+        
     }
 }
 
