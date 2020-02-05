@@ -53,8 +53,8 @@ void task_b_main(struct SHEET *sht_back) {
             data = fifo32_get(&fifo);
             io_sti();
             if (data==2) {
-                farjmp(0,3*8);
-                timer_settime(timer2, 2);
+//                farjmp(0,3*8);
+//                timer_settime(timer2, 2);
             }else if (data==1) {
                 sprintf(s, "%d",count);
                 putfonts8_asc_sht(sht_back, 0, 140, COL8_YELLOW,COL8_RED , s, 10);
@@ -202,6 +202,9 @@ void HariMain(){
     timer_init(timer2, &fifo, 2);
     timer_settime(timer2,2);
     
+    //多任务
+    mt_init();
+    
     cursor_x = 8;
 	for(;;){
         
@@ -289,8 +292,8 @@ void HariMain(){
                 timer_settime(timer, 50);
                 sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
             }else if(data==2){
-                farjmp(0,4*8);
-                timer_settime(timer2, 2);
+//                farjmp(0,4*8);
+//                timer_settime(timer2, 2);
             }
         }
 	}

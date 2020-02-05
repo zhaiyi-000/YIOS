@@ -90,10 +90,10 @@ void timer_settime(struct TIMER *timer, unsigned int timeout){
         }
     }
 }
-
+extern struct TIMER *mt_timer;
 
 void inthandler20(int* esp) {
-    int i;
+    int i,ts = 0;
     struct TIMER *timer;
     
     io_out8(PIC0_OCW2, 0x60);
@@ -109,7 +109,13 @@ void inthandler20(int* esp) {
             break;
         }
         timer->flags = 1;
-        fifo32_put(timer->fifo, timer->data);
+        
+        if (timer != mt_timer) {
+            fifo32_put(timer->fifo, timer->data);
+        }else{
+            ts = 1;
+        }
+        
         timer = timer->next;
     }
     
@@ -120,6 +126,10 @@ void inthandler20(int* esp) {
         timerctl.next = timerctl.t0->timeout;
     }else{
         timerctl.next = 0xffffffff;
+    }
+    
+    if (ts!=0) {
+        mt_taskswitch();
     }
     
 }
