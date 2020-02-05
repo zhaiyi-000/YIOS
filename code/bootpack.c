@@ -4,13 +4,6 @@
 extern struct TIMECTL timerctl;
 
 struct FIFO32 fifo;
-struct TSS32 {
-    int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
-    int eip, eflags, eax, ecx, edx, ebx, esp, ebp, esi, edi;
-    int es, cs, ss, ds, fs, gs;
-    int ldtr, iomap;
-};
-int task_b_esp;
 
 void yiPrintf(char *chs){
     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
@@ -103,38 +96,12 @@ void HariMain(){
         '2', '3', '0', '.'
     };
     
-    struct TSS32 tss_a,tss_b;
-    tss_a.ldtr = 0;
-    tss_a.iomap = 0x40000000;  //别问为什么  p293
-    tss_b.ldtr = 0;
-    tss_b.iomap = 0x40000000;
-    
-    tss_b.eip = (int)&task_b_main;
-    tss_b.eflags = 0x202;   //if = 1
-    tss_b.eax = 0;
-    tss_b.ecx = 0;
-    tss_b.edx = 0;
-    tss_b.ebx = 0;
-    task_b_esp = memman_alloc_4k(memman, 64*1024)+64*1024-8;
-    tss_b.esp = task_b_esp;
-    tss_b.ebp = 0;
-    tss_b.esi = 0;
-    tss_b.edi = 0;
-    tss_b.es = 1*8;
-    tss_b.cs = 2*8;
-    tss_b.ss = 1*8;
-    tss_b.ds = 1*8;
-    tss_b.fs = 1*8;
-    tss_b.gs = 1*8;
-    
-    
     
     fifo32_init(&fifo, 128, fifobuf);
     
     
     shtctl = shtctl_init(memman, bInfo->vram, bInfo->scrnx, bInfo->scrny);
     sht_back = sheet_alloc(shtctl);
-    *((struct SHEET **)(task_b_esp+4)) = sht_back;
     sht_mouse = sheet_alloc(shtctl);
     sht_win = sheet_alloc(shtctl);
     buf_back = (unsigned char *)memman_alloc_4k(memman, bInfo->scrnx* bInfo->scrny);
@@ -167,11 +134,6 @@ void HariMain(){
     init_keyboard(&fifo,256);
     enable_mouse(&fifo,512,&mdec);
     
-    // dgt/idt 增设
-    struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
-    set_segmdesc(gdt+3, 103, (int)&tss_a, AR_TSS32);
-    set_segmdesc(gdt+4, 103, (int)&tss_b, AR_TSS32);
-    load_tr(3*8);
     
 	//logo
     boxfill8(buf_back, bInfo->scrnx, COL8_RED, 0, 0, 310, 18);
@@ -203,7 +165,19 @@ void HariMain(){
     timer_settime(timer2,2);
     
     //多任务
-    mt_init();
+    task_init(memman);
+    struct TASK *task_b = task_alloc();
+    task_b->tss.esp = memman_alloc_4k(memman, 64*1024)+64*1024-8;
+    task_b->tss.eip = (int)task_b_main;
+    task_b->tss.es = 1*8;
+    task_b->tss.cs = 2*8;
+    task_b->tss.ss = 1*8;
+    task_b->tss.ds = 1*8;
+    task_b->tss.fs = 1*8;
+    task_b->tss.gs = 1*8;
+    *((struct SHEET **)(task_b->tss.esp+4)) = sht_back;
+    task_run(task_b);
+    
     
     cursor_x = 8;
 	for(;;){

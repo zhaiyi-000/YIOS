@@ -90,7 +90,7 @@ void timer_settime(struct TIMER *timer, unsigned int timeout){
         }
     }
 }
-extern struct TIMER *mt_timer;
+extern struct TIMER *task_timer;
 
 void inthandler20(int* esp) {
     int i,ts = 0;
@@ -110,7 +110,7 @@ void inthandler20(int* esp) {
         }
         timer->flags = 1;
         
-        if (timer != mt_timer) {
+        if (timer != task_timer) {
             fifo32_put(timer->fifo, timer->data);
         }else{
             ts = 1;
@@ -129,7 +129,7 @@ void inthandler20(int* esp) {
     }
     
     if (ts!=0) {
-        mt_taskswitch();
+        task_switch();
     }
     
 }
