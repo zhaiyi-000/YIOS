@@ -10,6 +10,7 @@
     GLOBAL _asm_inthandler21,_asm_inthandler2c,_asm_inthandler27,_asm_inthandler20
     GLOBAL _load_cr0,_store_cr0
     GLOBAL _memtest_sub
+    GLOBAL _load_tr,_taskswitch4
     
     EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20
 
@@ -215,3 +216,12 @@ mts_fin:
     pop ebx
     ret
 
+
+_load_tr:
+    ltr [esp+4]
+    ret
+
+
+_taskswitch4:
+    jmp 4*8:0
+    ret

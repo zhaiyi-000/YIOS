@@ -11,6 +11,7 @@
 #define LIMIT_BOTPAK    0x0007ffff
 #define AR_DATA32_RW    0x4092
 #define AR_CODE32_ER    0x409a
+#define AR_TSS32        0x0089
 #define AR_INTGATE32    0x008e
 
 void yiPrintf(char *chs);
@@ -83,6 +84,8 @@ void asm_inthandler21(void);
 void asm_inthandler2c(void);
 void asm_inthandler27(void);
 void asm_inthandler20(void);
+void load_tr(int tr);
+void taskswitch4(void);
 
 int load_cr0(void);
 void store_cr0(int data);
