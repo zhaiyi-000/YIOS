@@ -14,37 +14,55 @@ void make_wtitle8(unsigned char *buf, int xsize,char *title, char act);
 
 void console_task(struct SHEET *sheet)
 {
-    struct FIFO32 fifo;
     struct TIMER *timer;
     struct TASK *task = task_now();
+    struct FIFO32 *fifo = &task->fifo;
 
     int i, fifobuf[128], cursor_x = 8, cursor_c = COL8_000000;
-    fifo32_init(&fifo, 128, fifobuf, task);
+    fifo32_init(fifo, 128, fifobuf, task);
+    char s[100];
 
     timer = timer_alloc();
-    timer_init(timer, &fifo, 1);
+    timer_init(timer, fifo, 1);
     timer_settime(timer, 50);
+    
+    putfonts8_asc_sht(sheet, 8, 28, COL8_FFFFFF, COL8_000000, ">",1);
 
     for (;;) {
         io_cli();
-        if (fifo32_status(&fifo) == 0) {
+        if (fifo32_status(fifo) == 0) {
             task_sleep(task);
             io_sti();
         } else {
-            i = fifo32_get(&fifo);
+            i = fifo32_get(fifo);
             io_sti();
             if (i <= 1) { /* カーソル用タイマ */
                 if (i != 0) {
-                    timer_init(timer, &fifo, 0); /* 次は0を */
+                    timer_init(timer, fifo, 0); /* 次は0を */
                     cursor_c = COL8_FFFFFF;
                 } else {
-                    timer_init(timer, &fifo, 1); /* 次は1を */
+                    timer_init(timer, fifo, 1); /* 次は1を */
                     cursor_c = COL8_000000;
                 }
                 timer_settime(timer, 50);
-                boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
-                sheet_refresh(sheet, cursor_x, 28, cursor_x + 8, 44);
+            }else if (256 <= i && i <=511) {
+                i-=256;
+                if (i==8) {
+                    if (cursor_x > 16) {
+                        putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, " ", 1);
+                        cursor_x -= 8;
+                    }
+                }else{
+                    s[0] = i;
+                    s[1] = 0;
+                    putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, s, 1);
+                    cursor_x+=8;
+                }
             }
+            
+
+            boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
+            sheet_refresh(sheet, cursor_x, 28, cursor_x + 8, 44);
         }
     }
 }
@@ -164,7 +182,7 @@ void HariMain(){
     
     
     int cursor_x = 8;
-    int data;
+    int i;
     int key_to = 0;
 	for(;;){
         
@@ -174,30 +192,39 @@ void HariMain(){
             io_sti();
         }else{
             
-            data = fifo32_get(&fifo);
+            i = fifo32_get(&fifo);
             io_sti();
             
-            if (256 <= data && data <= 511) {
-                data-=256;
+            if (256 <= i && i <= 511) {
+                i-=256;
                 
-                sprintf(s, "jianpan %02X",data);
+                sprintf(s, "jianpan %02X",i);
                 putfonts8_asc_sht(sht_back, 0, 40, COL8_YELLOW, COL8_RED, s, 20);
                 
-                if (data < 0x54 && keytable[data]!=0) {
-                    s[0] = keytable[data];
-                    s[1] = 0;
-                    putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_RED, COL8_YELLOW, s, 1);
-                    cursor_x+=8;
+                if (i < 0x54 && keytable[i]!=0) {
+                    if (key_to==0) {
+                        s[0] = keytable[i];
+                        s[1] = 0;
+                        putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_RED, COL8_YELLOW, s, 1);
+                        cursor_x+=8;
+                    }else{
+                        fifo32_put(&task_cons->fifo, keytable[i]+256);
+                    }
                 }
                 
-                if (data==0xe) {
-                    if (cursor_x > 8) {
-                        boxfill8(buf_win, sht_win->bxsize, COL8_WHITE, cursor_x, 30, cursor_x+2, 46);//消除原来光标
-                        sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
-                        cursor_x -= 8;
-                        putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_WHITE, COL8_WHITE, " ", 1);
+                if (i==0xe) { //退格
+                    if (key_to==0) {
+                        if (cursor_x > 8) {
+                            boxfill8(buf_win, sht_win->bxsize, COL8_WHITE, cursor_x, 30, cursor_x+2, 46);//消除原来光标
+                            sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
+                            cursor_x -= 8;
+                            putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_WHITE, COL8_WHITE, " ", 1);
+                        }
+                    }else{
+                        fifo32_put(&task_cons->fifo, 8+256);
                     }
-                }else if(data==0xf){
+                    
+                }else if(i==0xf){//tab
                     if (key_to==0) {
                         key_to = 1;
                         make_wtitle8(buf_win, sht_win->bxsize, "task_a", 0);
@@ -213,9 +240,9 @@ void HariMain(){
                 }
                 
                 
-            }else if(512 <= data && data <= 767){
-                data-=512;
-                if (mouse_decode(&mdec, data) != 0) {
+            }else if(512 <= i && i <= 767){
+                i-=512;
+                if (mouse_decode(&mdec, i) != 0) {
                     
                     sprintf(s, "lcr %8X %8X",mdec.x,mdec.y);
                     
@@ -257,12 +284,12 @@ void HariMain(){
                         sheet_slide(sht_win, mx - 80, my - 8);
                     }
                 }
-            }else if(data==0){
+            }else if(i==0){
                 timer_init(timer, &fifo, 1);
                 boxfill8(buf_win, sht_win->bxsize, COL8_BLACK, cursor_x, 30, cursor_x+2, 46);
                 timer_settime(timer, 50);
                 sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
-            }else if(data==1){
+            }else if(i==1){
                 timer_init(timer, &fifo, 0);
                 boxfill8(buf_win, sht_win->bxsize, COL8_WHITE, cursor_x, 30, cursor_x+2, 46);
                 timer_settime(timer, 50);
