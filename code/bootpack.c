@@ -18,7 +18,7 @@ void console_task(struct SHEET *sheet)
     struct TASK *task = task_now();
     struct FIFO32 *fifo = &task->fifo;
 
-    int i, fifobuf[128], cursor_x = 8, cursor_c = COL8_000000;
+    int i, fifobuf[128], cursor_x = 16, cursor_c = COL8_000000;
     fifo32_init(fifo, 128, fifobuf, task);
     char s[100];
 
@@ -72,14 +72,28 @@ void console_task(struct SHEET *sheet)
 void HariMain(){
     
     //数据
-    static char keytable[0x54] = {
+    static char keytable0[0x80] = {
         0,   0,   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', 0,   0,
         'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '@', '[', 0,   0,   'A', 'S',
         'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', ':', 0,   0,   ']', 'Z', 'X', 'C', 'V',
         'B', 'N', 'M', ',', '.', '/', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
         0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1',
-        '2', '3', '0', '.'
+        '2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,   0,   0,   0x5c, 0,  0,   0,   0,   0,   0,   0,   0,   0,   0x5c, 0,  0
     };
+    static char keytable1[0x80] = {
+        0,   0,   '!', 0x22, '#', '$', '%', '&', 0x27, '(', ')', '~', '=', '~', 0,   0,
+        'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '`', '{', 0,   0,   'A', 'S',
+        'D', 'F', 'G', 'H', 'J', 'K', 'L', '+', '*', 0,   0,   '}', 'Z', 'X', 'C', 'V',
+        'B', 'N', 'M', '<', '>', '?', 0,   '*', 0,   ' ', 0,   0,   0,   0,   0,   0,
+        0,   0,   0,   0,   0,   0,   0,   '7', '8', '9', '-', '4', '5', '6', '+', '1',
+        '2', '3', '0', '.', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+        0,   0,   0,   '_', 0,   0,   0,   0,   0,   0,   0,   0,   0,   '|', 0,   0
+    };
+    
+    
     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
     char s[100];
     //缓冲区
@@ -183,7 +197,7 @@ void HariMain(){
     
     int cursor_x = 8;
     int i;
-    int key_to = 0;
+    int key_to = 0,key_shift = 0;
 	for(;;){
         
         io_cli();
@@ -201,14 +215,24 @@ void HariMain(){
                 sprintf(s, "jianpan %02X",i);
                 putfonts8_asc_sht(sht_back, 0, 40, COL8_YELLOW, COL8_RED, s, 20);
                 
-                if (i < 0x54 && keytable[i]!=0) {
+                if (i < 0x80) {
+                    
+                    if (key_shift == 0) {
+                        s[0] = keytable0[i];
+                    }else{
+                        s[0] = keytable1[i];
+                    }
+                }else{
+                    s[0] = 0;
+                }
+                
+                if (s[0]!=0) {
                     if (key_to==0) {
-                        s[0] = keytable[i];
                         s[1] = 0;
                         putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_RED, COL8_YELLOW, s, 1);
                         cursor_x+=8;
                     }else{
-                        fifo32_put(&task_cons->fifo, keytable[i]+256);
+                        fifo32_put(&task_cons->fifo, s[0]+256);
                     }
                 }
                 
@@ -237,6 +261,14 @@ void HariMain(){
                     
                     sheet_refresh(sht_win, 0, 0, sht_win->bxsize, 21);
                     sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
+                }else if(i==0x2a){//左shift on
+                    key_shift |= 1;
+                }else if(i==0x36){
+                    key_shift |= 2;
+                }else if(i==0xaa){
+                    key_shift &= ~1;
+                }else if(i==0xb6){
+                    key_shift &= ~2;
                 }
                 
                 
