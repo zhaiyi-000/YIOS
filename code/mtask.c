@@ -24,13 +24,14 @@ struct TASK *task_init(struct MEMMAN *memman){
     }
     task = task_alloc();
     
-    task->flags = 2;
+    task->flags = 2;   //2表示正在运行  //0表示未分配  //1表示睡眠
+    task->priority = 2;
     taskctl->running = 1;
     taskctl->now = 0;
     taskctl->tasks[0] = task;
     load_tr(task->sel);
     task_timer = timer_alloc();
-    timer_settime(task_timer, 2);
+    timer_settime(task_timer, task->priority);
     return task;
 }
 
@@ -61,19 +62,28 @@ struct TASK *task_alloc(void){
     return 0;
 }
 
-void task_run(struct TASK *task){
-    task->flags = 2;
-    taskctl->tasks[taskctl->running] = task;
-    taskctl->running++;
+void task_run(struct TASK *task, int priority){
+    if (priority > 0) {//如果priority==0,只用来唤醒,不改变优先级
+        task->priority = priority;
+    }
+    
+    if (task->flags != 2) {
+        task->flags = 2;
+        taskctl->tasks[taskctl->running] = task;
+        taskctl->running++;
+    }
 }
 void task_switch(void){
-    timer_settime(task_timer, 2);
+    struct TASK *task;
+    taskctl->now++;
+    if (taskctl->now == taskctl->running) {
+        taskctl->now = 0;
+    }
+    task = taskctl->tasks[taskctl->now];
+    timer_settime(task_timer, task->priority);
+    
     if (taskctl->running >= 2) {
-        taskctl->now++;
-        if (taskctl->now == taskctl->running) {
-            taskctl->now = 0;
-        }
-        farjmp(0, taskctl->tasks[taskctl->now]->sel);
+        farjmp(0, task->sel);
     }
 }
 

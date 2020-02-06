@@ -161,7 +161,7 @@ void HariMain(){
         task_b[i]->tss.ds = 1*8;
         task_b[i]->tss.fs = 1*8;
         task_b[i]->tss.gs = 1*8;
-        task_run(task_b[i]);
+        task_run(task_b[i],i+1);
     }
     
     
