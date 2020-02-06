@@ -61,10 +61,6 @@ void inthandler2c(int *esp){  //源代码写的是int *,先不管  鼠标
     io_out8(PIC0_OCW2, 0x62);
     data = io_in8(0x60);
     
-    char s[100];
-    sprintf(s, "%08x",data);
-    yiPrintf(s);
-    
     fifo32_put(mousefifo, data+mousedata0);
 }
 

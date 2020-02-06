@@ -7,31 +7,23 @@ void yiPrintf(char *chs){
     putfonts8_asc(bInfo->vram, bInfo->scrnx, 0, 120, COL8_YELLOW, chs);
 }
 
-void make_window8(unsigned char *buf, int xsize, int ysize, char *title);
+void make_window8(unsigned char *buf, int xsize, int ysize, char *title,char act);
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l);
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 
-void task_b_main(struct SHEET *sht_back) {
-    
-    struct TIMER *timer1,*timer2;
-    struct FIFO32 fifo;
-    int data;
-    unsigned int count = 0;
+void task_b_main(struct SHEET *sht_win) {
     char s[100];
     
+    struct FIFO32 fifo;
     int fifobuf[128];
     fifo32_init(&fifo, 128, fifobuf,0);
     
-    timer1 = timer_alloc();
+    struct TIMER *timer1 = timer_alloc();
     timer_init(timer1, &fifo,1);
     timer_settime(timer1, 1);
-    timer2 = timer_alloc();
-    timer_init(timer2, &fifo, 2);
-    timer_settime(timer2, 2);
     
-//    struct SHEET *sht_back = *(struct SHEET **)ADDR_SHTBACK;
-    
-    
+    int data;
+    unsigned int count = 0;
     for (; ; ) {
         count++;
         
@@ -41,12 +33,9 @@ void task_b_main(struct SHEET *sht_back) {
         }else{
             data = fifo32_get(&fifo);
             io_sti();
-            if (data==2) {
-//                farjmp(0,3*8);
-//                timer_settime(timer2, 2);
-            }else if (data==1) {
+            if (data==1) {
                 sprintf(s, "%d",count);
-                putfonts8_asc_sht(sht_back, 0, 140, COL8_YELLOW,COL8_RED , s, 10);
+                putfonts8_asc_sht(sht_win, 0, 20, COL8_YELLOW,COL8_RED , s, 10);
                 timer_settime(timer1, 1);
             }
         }
@@ -95,7 +84,7 @@ void HariMain(){
     struct SHTCTL *shtctl = shtctl_init(memman, bInfo->vram, bInfo->scrnx, bInfo->scrny);
     
     struct SHEET *sht_back = sheet_alloc(shtctl);
-    unsigned char *buf_back = buf_back = memman_alloc_4k(memman, bInfo->scrnx* bInfo->scrny);
+    unsigned char *buf_back = buf_back = (unsigned char *)memman_alloc_4k(memman, bInfo->scrnx* bInfo->scrny);
     sheet_setbuf(sht_back, buf_back, bInfo->scrnx, bInfo->scrny, -1);
     init_screen8(buf_back, bInfo->scrnx, bInfo->scrny);
     sheet_updown(sht_back, 0);
@@ -104,18 +93,34 @@ void HariMain(){
     struct SHEET *sht_mouse = sheet_alloc(shtctl);
     unsigned char buf_mouse[256];
     sheet_setbuf(sht_mouse, buf_mouse,  16, 16, 99);
-    sheet_updown(sht_mouse, 2);
+    sheet_updown(sht_mouse, 5);
     int mx = 160,my = 100;
     init_mouse_cursor8(buf_mouse,99);
     sheet_slide(sht_mouse, mx, my);
     
     struct SHEET *sht_win = sheet_alloc(shtctl);
-    unsigned char *buf_win = (unsigned char *)memman_alloc_4k(memman, 160*68);
-    sheet_setbuf(sht_win, buf_win, 160, 68, -1);
-    make_window8(buf_win, 160, 68, "window");
+    unsigned char *buf_win = (unsigned char *)memman_alloc_4k(memman, 160*52);
+    sheet_setbuf(sht_win, buf_win, 144, 52, -1);
+    make_window8(buf_win, 144, 52, "task_a",1);
     make_textbox8(sht_win, 10, 30, sht_win->bxsize-20, 16, COL8_WHITE);
     sheet_updown(sht_win, 1);
-    sheet_slide(sht_win, 80, 172);
+    sheet_slide(sht_win, 8, 56);
+    
+    struct SHEET *sht_win_b[3];
+    unsigned char *buf_win_b;
+    int i;
+    for (i = 0; i < 3; i++) {
+        sht_win_b[i] = sheet_alloc(shtctl);
+        buf_win_b = (unsigned char *)memman_alloc_4k(memman, 144*52);
+        sheet_setbuf(sht_win_b[i], buf_win_b, 144, 52, -1);
+        sprintf(s, "window-b-%d",i);
+        make_window8(buf_win_b, 144, 52, s,0);
+        sheet_updown(sht_win_b[i], 2+i);
+    }
+    sheet_slide(sht_win_b[0], 168, 56);
+    sheet_slide(sht_win_b[1], 8, 116);
+    sheet_slide(sht_win_b[2], 168, 116);
+    
     
     
     //用于显示闪烁的光标
@@ -144,17 +149,22 @@ void HariMain(){
     //多任务
     struct TASK *task_a = task_init(memman);
     fifo.task = task_a;
-    struct TASK *task_b = task_alloc();
-    task_b->tss.esp = memman_alloc_4k(memman, 64*1024)+64*1024-8;
-    *((struct SHEET **)(task_b->tss.esp+4)) = sht_back;
-    task_b->tss.eip = (int)task_b_main;
-    task_b->tss.es = 1*8;
-    task_b->tss.cs = 2*8;
-    task_b->tss.ss = 1*8;
-    task_b->tss.ds = 1*8;
-    task_b->tss.fs = 1*8;
-    task_b->tss.gs = 1*8;
-    task_run(task_b);
+    struct TASK *task_b[3];
+    for (i = 0; i < 3; i++) {
+        task_b[i] = task_alloc();
+        task_b[i]->tss.esp = memman_alloc_4k(memman, 64*1024)+64*1024-8;
+        *((int *)(task_b[i]->tss.esp+4)) = (int)sht_win_b[i];
+        task_b[i]->tss.eip = (int)task_b_main;
+        task_b[i]->tss.es = 1*8;
+        task_b[i]->tss.cs = 2*8;
+        task_b[i]->tss.ss = 1*8;
+        task_b[i]->tss.ds = 1*8;
+        task_b[i]->tss.fs = 1*8;
+        task_b[i]->tss.gs = 1*8;
+        task_run(task_b[i]);
+    }
+    
+    
     
     int cursor_x = 8;
     int data;
@@ -253,7 +263,7 @@ void HariMain(){
 
 
 
-void make_window8(unsigned char *buf, int xsize, int ysize, char *title)
+void make_window8(unsigned char *buf, int xsize, int ysize, char *title,char act)
 {
     static char closebtn[14][16] = {
         "OOOOOOOOOOOOOOO@",
@@ -272,7 +282,15 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title)
         "@@@@@@@@@@@@@@@@"
     };
     int x, y;
-    char c;
+    char c,tc,tbc;
+    if (act !=0) {
+        tc = COL8_FFFFFF;
+        tbc = COL8_000084;
+    }else{
+        tc = COL8_C6C6C6;
+        tbc = COL8_848484;
+    }
+    
     boxfill8(buf, xsize, COL8_C6C6C6, 0,         0,         xsize - 1, 0        );
     boxfill8(buf, xsize, COL8_FFFFFF, 1,         1,         xsize - 2, 1        );
     boxfill8(buf, xsize, COL8_C6C6C6, 0,         0,         0,         ysize - 1);
@@ -280,10 +298,10 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title)
     boxfill8(buf, xsize, COL8_848484, xsize - 2, 1,         xsize - 2, ysize - 2);
     boxfill8(buf, xsize, COL8_000000, xsize - 1, 0,         xsize - 1, ysize - 1);
     boxfill8(buf, xsize, COL8_C6C6C6, 2,         2,         xsize - 3, ysize - 3);
-    boxfill8(buf, xsize, COL8_000084, 3,         3,         xsize - 4, 20       );
+    boxfill8(buf, xsize, tbc        , 3,         3,         xsize - 4, 20       );
     boxfill8(buf, xsize, COL8_848484, 1,         ysize - 2, xsize - 2, ysize - 2);
     boxfill8(buf, xsize, COL8_000000, 0,         ysize - 1, xsize - 1, ysize - 1);
-    putfonts8_asc(buf, xsize, 24, 4, COL8_FFFFFF, title);
+    putfonts8_asc(buf, xsize, 24, 4, tc, title);
     for (y = 0; y < 14; y++) {
         for (x = 0; x < 16; x++) {
             c = closebtn[y][x];
