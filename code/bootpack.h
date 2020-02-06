@@ -2,6 +2,8 @@
 
 #define ADR_BOOTINFO 0xff0
 #define MEMMAN_ADDR            0x003c0000
+#define PORT_KEYDAT        0x0060
+#define PORT_KEYCMD        0x0064
 
 #define ADR_IDT            0x0026f800
 #define LIMIT_IDT        0x000007ff

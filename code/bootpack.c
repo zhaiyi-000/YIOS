@@ -1,5 +1,6 @@
 #include "bootpack.h"
 
+#define KEYCMD_LED 0xed
 
 void yiPrintf(char *chs){
     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
@@ -193,12 +194,24 @@ void HariMain(){
     sprintf(s, "[total %dM, free %dK]",memtotal/1024/1024,memman_total(memman)/1024);
     putfonts8_asc_sht(sht_back, 0, 100, COL8_YELLOW, COL8_RED, s, 30);
 
+    int key_to = 0,key_shift = 0,key_leds = (bInfo->leds >> 4) & 7;
     
+    struct FIFO32 keycmd;
+    int keycmd_wait = -1;
+    int keycmd_buf[32];
+    fifo32_init(&keycmd, 32, keycmd_buf, 0);
+    fifo32_put(&keycmd, KEYCMD_LED);
+    fifo32_put(&keycmd, key_leds);
     
     int cursor_x = 8;
     int i;
-    int key_to = 0,key_shift = 0,key_leds = (bInfo->leds >> 4) & 7;
 	for(;;){
+        if (fifo32_status(&keycmd) > 0 && keycmd_wait<0) {
+            keycmd_wait = fifo32_get(&keycmd);
+            wait_KBC_sendready();
+            io_out8(PORT_KEYDAT, keycmd_wait);
+        }
+        
         
         io_cli();
         if (fifo32_status(&fifo) ==0) {
@@ -227,7 +240,7 @@ void HariMain(){
                 }
                 
                 if ('A' <= s[0] && s[0] <= 'Z') {
-                    if (((key_leds & 4)==0 && key_shift==0)||(key_leds & 4)!=0 && key_shift!=0) {
+                    if (((key_leds & 4)==0 && key_shift==0)||((key_leds & 4)!=0 && key_shift!=0)) {
                         s[0]+=0x20;
                     }
                 }
@@ -275,6 +288,23 @@ void HariMain(){
                     key_shift &= ~1;
                 }else if(i==0xb6){
                     key_shift &= ~2;
+                }else if(i==0x3a){//caps
+                    key_leds ^= 4;
+                    fifo32_put(&keycmd, KEYCMD_LED);
+                    fifo32_put(&keycmd, key_leds);
+                }else if(i==0x45){//numlock
+                    key_leds ^= 2;
+                    fifo32_put(&keycmd, KEYCMD_LED);
+                    fifo32_put(&keycmd, key_leds);
+                }else if(i==0x46){//scrolllock
+                    key_leds ^= 1;
+                    fifo32_put(&keycmd, KEYCMD_LED);
+                    fifo32_put(&keycmd, key_leds);
+                }else if(i==0xfa){//numlock
+                    keycmd_wait = -1;
+                }else if(i==0xfe){//numlock
+                    wait_KBC_sendready();
+                    io_out8(PORT_KEYDAT, keycmd_wait);
                 }
                 
                 
