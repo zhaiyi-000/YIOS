@@ -149,6 +149,7 @@ void HariMain(){
     //多任务
     struct TASK *task_a = task_init(memman);
     fifo.task = task_a;
+    task_run(task_a, 1,0);
     struct TASK *task_b[3];
     for (i = 0; i < 3; i++) {
         task_b[i] = task_alloc();
@@ -161,7 +162,7 @@ void HariMain(){
         task_b[i]->tss.ds = 1*8;
         task_b[i]->tss.fs = 1*8;
         task_b[i]->tss.gs = 1*8;
-        task_run(task_b[i],i+1);
+        task_run(task_b[i],2,i+1);
     }
     
     

@@ -241,8 +241,10 @@ void timer_settime(struct TIMER *timer, unsigned int timeout);
 
 // mtask.c
 
-#define MAX_TASKS 1000
 #define TASK_GDT0 3
+#define MAX_TASKS 1000
+#define MAX_TASKS_LV 100
+#define MAX_TASKLEVELS 10
 
 struct TSS32 {
     int backlink, esp0, ss0, esp1, ss1, esp2, ss2, cr3;
@@ -253,21 +255,31 @@ struct TSS32 {
 
 struct TASK {
     int sel,flags; //sel用来存放GDT的编号
-    int priority;
+    int level,priority;
     struct TSS32 tss;
 };
 
+struct TASKLEVEL {
+    int running;  //个数
+    int now;        //当前运行哪一个
+    struct TASK *tasks[MAX_TASKS_LV];
+};
+
 struct TASKCTL {
-    int running;
-    int now;
-    struct TASK *tasks[MAX_TASKS];
+    int now_lv;
+    char lv_change;
+    struct TASKLEVEL level[MAX_TASKLEVELS];
     struct TASK task0[MAX_TASKS];
 };
 
 
 
+struct TASK *task_now(void);
+void task_add(struct TASK *task);
+void task_remove(struct TASK *task);
+void task_switchsub(void);
 struct TASK *task_init(struct MEMMAN *memman);
 struct TASK *task_alloc(void);
-void task_run(struct TASK *task, int priority);
+void task_run(struct TASK *task, int level, int priority);
 void task_switch(void);
 void task_sleep(struct TASK *task);
