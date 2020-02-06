@@ -11,35 +11,40 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title,char act
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l);
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 
-void task_b_main(struct SHEET *sht_win) {
-    char s[100];
-    
+void console_task(struct SHEET *sheet)
+{
     struct FIFO32 fifo;
-    int fifobuf[128];
-    fifo32_init(&fifo, 128, fifobuf,0);
-    
-    struct TIMER *timer1 = timer_alloc();
-    timer_init(timer1, &fifo,1);
-    timer_settime(timer1, 1);
-    
-    int data;
-    unsigned int count = 0;
-    for (; ; ) {
-        count++;
-        
+    struct TIMER *timer;
+    struct TASK *task = task_now();
+
+    int i, fifobuf[128], cursor_x = 8, cursor_c = COL8_000000;
+    fifo32_init(&fifo, 128, fifobuf, task);
+
+    timer = timer_alloc();
+    timer_init(timer, &fifo, 1);
+    timer_settime(timer, 50);
+
+    for (;;) {
         io_cli();
-        if (fifo32_status(&fifo)==0) {
-            io_stihlt();
-        }else{
-            data = fifo32_get(&fifo);
+        if (fifo32_status(&fifo) == 0) {
+            task_sleep(task);
             io_sti();
-            if (data==1) {
-                sprintf(s, "%d",count);
-                putfonts8_asc_sht(sht_win, 0, 20, COL8_YELLOW,COL8_RED , s, 10);
-                timer_settime(timer1, 1);
+        } else {
+            i = fifo32_get(&fifo);
+            io_sti();
+            if (i <= 1) { /* カーソル用タイマ */
+                if (i != 0) {
+                    timer_init(timer, &fifo, 0); /* 次は0を */
+                    cursor_c = COL8_FFFFFF;
+                } else {
+                    timer_init(timer, &fifo, 1); /* 次は1を */
+                    cursor_c = COL8_000000;
+                }
+                timer_settime(timer, 50);
+                boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
+                sheet_refresh(sheet, cursor_x, 28, cursor_x + 8, 44);
             }
         }
-        
     }
 }
 
@@ -106,20 +111,30 @@ void HariMain(){
     sheet_updown(sht_win, 1);
     sheet_slide(sht_win, 8, 56);
     
-    struct SHEET *sht_win_b[3];
-    unsigned char *buf_win_b;
-    int i;
-    for (i = 0; i < 3; i++) {
-        sht_win_b[i] = sheet_alloc(shtctl);
-        buf_win_b = (unsigned char *)memman_alloc_4k(memman, 144*52);
-        sheet_setbuf(sht_win_b[i], buf_win_b, 144, 52, -1);
-        sprintf(s, "window-b-%d",i);
-        make_window8(buf_win_b, 144, 52, s,0);
-        sheet_updown(sht_win_b[i], 2+i);
-    }
-    sheet_slide(sht_win_b[0], 168, 56);
-    sheet_slide(sht_win_b[1], 8, 116);
-    sheet_slide(sht_win_b[2], 168, 116);
+    //多任务
+    struct TASK *task_a = task_init(memman);
+    fifo.task = task_a;
+    task_run(task_a, 1,0);
+    
+    /* sht_cons */
+    struct SHEET *sht_cons = sheet_alloc(shtctl);
+    unsigned char *buf_cons = (unsigned char *) memman_alloc_4k(memman, 256 * 165);
+    sheet_setbuf(sht_cons, buf_cons, 256, 165, -1); /* 透明色なし */
+    make_window8(buf_cons, 256, 165, "console", 0);
+    make_textbox8(sht_cons, 8, 28, 240, 128, COL8_000000);
+    struct TASK *task_cons = task_alloc();
+    task_cons->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 8;
+    task_cons->tss.eip = (int)console_task;
+    task_cons->tss.es = 1 * 8;
+    task_cons->tss.cs = 2 * 8;
+    task_cons->tss.ss = 1 * 8;
+    task_cons->tss.ds = 1 * 8;
+    task_cons->tss.fs = 1 * 8;
+    task_cons->tss.gs = 1 * 8;
+    *((int *) (task_cons->tss.esp + 4)) = (int) sht_cons;
+    task_run(task_cons, 2, 2); /* level=2, priority=2 */
+    sheet_updown(sht_cons, 2);
+    sheet_slide(sht_cons, 32, 200);
     
     
     
@@ -145,26 +160,6 @@ void HariMain(){
     sprintf(s, "[total %dM, free %dK]",memtotal/1024/1024,memman_total(memman)/1024);
     putfonts8_asc_sht(sht_back, 0, 100, COL8_YELLOW, COL8_RED, s, 30);
 
-    
-    //多任务
-    struct TASK *task_a = task_init(memman);
-    fifo.task = task_a;
-    task_run(task_a, 1,0);
-    struct TASK *task_b[3];
-    for (i = 0; i < 3; i++) {
-        task_b[i] = task_alloc();
-        task_b[i]->tss.esp = memman_alloc_4k(memman, 64*1024)+64*1024-8;
-        *((int *)(task_b[i]->tss.esp+4)) = (int)sht_win_b[i];
-        task_b[i]->tss.eip = (int)task_b_main;
-        task_b[i]->tss.es = 1*8;
-        task_b[i]->tss.cs = 2*8;
-        task_b[i]->tss.ss = 1*8;
-        task_b[i]->tss.ds = 1*8;
-        task_b[i]->tss.fs = 1*8;
-        task_b[i]->tss.gs = 1*8;
-//        task_run(task_b[i],2,i+1);
-    }
-    
     
     
     int cursor_x = 8;
