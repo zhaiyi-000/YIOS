@@ -197,7 +197,7 @@ void HariMain(){
     
     int cursor_x = 8;
     int i;
-    int key_to = 0,key_shift = 0;
+    int key_to = 0,key_shift = 0,key_leds = (bInfo->leds >> 4) & 7;
 	for(;;){
         
         io_cli();
@@ -224,6 +224,12 @@ void HariMain(){
                     }
                 }else{
                     s[0] = 0;
+                }
+                
+                if ('A' <= s[0] && s[0] <= 'Z') {
+                    if (((key_leds & 4)==0 && key_shift==0)||(key_leds & 4)!=0 && key_shift!=0) {
+                        s[0]+=0x20;
+                    }
                 }
                 
                 if (s[0]!=0) {
