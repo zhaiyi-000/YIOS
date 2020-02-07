@@ -15,6 +15,7 @@ void make_wtitle8(unsigned char *buf, int xsize,char *title, char act);
 
 void console_task(struct SHEET *sheet)
 {
+    int x,y;
     struct TIMER *timer;
     struct TASK *task = task_now();
     struct FIFO32 *fifo = &task->fifo;
@@ -68,6 +69,22 @@ void console_task(struct SHEET *sheet)
                         cursor_y+=16;
                         putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, ">", 1);
                         cursor_x = 16;
+                    }else{
+                        for (y = 28; y<28+112; y++) {
+                            for (x = 8; x < 8+240; x++) {
+                                sheet->buf[x+y*sheet->bxsize] = sheet->buf[x+(y+16)*sheet->bxsize];
+                            }
+                        }
+                        
+                        for (y = 28+112; y < 28+128; y++) {
+                            for (x = 8; x < 8+240; x++) {
+                                sheet->buf[x+y*sheet->bxsize] = COL8_BLACK;
+                            }
+                        }
+                        sheet_refresh(sheet, 8, 28, 8+240, 28+128);
+                        
+                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, ">", 1);
+                        cursor_x=16;
                     }
                 }else{
                     s[0] = i;
