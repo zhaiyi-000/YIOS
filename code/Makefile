@@ -69,11 +69,11 @@ haribote.img : ipl10.bin haribote.sys Makefile
 img :
 	xcopy "z:\YIOS\code" "c:\Users\sg\Desktop\YIOS\code" /e/i/h/y
 	$(MAKE) haribote.img
+	xcopy "c:\Users\sg\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
 
 run :
 	$(MAKE) img
 	$(COPY) haribote.img ..\z_tools\qemu\fdimage0.bin
-	xcopy "c:\Users\sg\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
 	$(MAKE) -C ../z_tools/qemu
 
 install :

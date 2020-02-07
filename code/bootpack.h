@@ -1,4 +1,5 @@
 #include <stdio.h>  //可以解决关于 sprintf 的警告
+#include <string.h>
 
 #define MEMMAN_ADDR            0x003c0000
 #define PORT_KEYDAT        0x0060
