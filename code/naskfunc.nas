@@ -11,9 +11,9 @@
     GLOBAL _load_cr0,_store_cr0
     GLOBAL _memtest_sub
     GLOBAL _load_tr,_farjmp,_farcall
-    GLOBAL _asm_cons_putchar
+    GLOBAL _asm_hrb_api
     
-    EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20,_cons_putchar
+    EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20,_hrb_api
 
 	
 [SECTION .text]
@@ -232,11 +232,11 @@ _farcall:
     ret
 
 
-_asm_cons_putchar:    ;写这个函数的作用是把参数压进栈
-    push 1
-    and eax,0xff
-    push eax
-    push dword [0xfec];
-    call _cons_putchar
-    add esp,12
+_asm_hrb_api:    ;写这个函数的作用是把参数压进栈
+    sti     ;这一句我一开始忘了加也没问题,不造问啥...
+    pushad
+    pushad
+    call _hrb_api
+    add esp,32
+    popad
     iretd
