@@ -19,7 +19,7 @@ void console_task(struct SHEET *sheet)
     struct TASK *task = task_now();
     struct FIFO32 *fifo = &task->fifo;
 
-    int i, fifobuf[128], cursor_x = 16, cursor_c = -1;
+    int i, fifobuf[128], cursor_x = 16,cursor_y = 28, cursor_c = -1;
     fifo32_init(fifo, 128, fifobuf, task);
     char s[100];
 
@@ -27,7 +27,7 @@ void console_task(struct SHEET *sheet)
     timer_init(timer, fifo, 1);
     timer_settime(timer, 50);
     
-    putfonts8_asc_sht(sheet, 8, 28, COL8_FFFFFF, COL8_000000, ">",1);
+    putfonts8_asc_sht(sheet, 8, cursor_y, COL8_FFFFFF, COL8_000000, ">",1);
 
     for (;;) {
         io_cli();
@@ -53,27 +53,34 @@ void console_task(struct SHEET *sheet)
             }else if (i == 2) { //显示光标
                 cursor_c = COL8_WHITE;
             }else if (i ==3) { //不显示光标
-                boxfill8(sheet->buf, sheet->bxsize, COL8_BLACK, cursor_x, 28, cursor_x+7, 43);
+                boxfill8(sheet->buf, sheet->bxsize, COL8_BLACK, cursor_x, cursor_y, cursor_x+7, 43);
                 cursor_c = -1;
             }else if (256 <= i && i <=511) {
                 i-=256;
                 if (i==8) {
                     if (cursor_x > 16) {
-                        putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, " ", 1);
+                        putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, " ", 1);
                         cursor_x -= 8;
+                    }
+                }else if (i==10){
+                    if (cursor_y < 28+112) {
+                        putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_WHITE, COL8_BLACK, " ", 1);
+                        cursor_y+=16;
+                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, ">", 1);
+                        cursor_x = 16;
                     }
                 }else{
                     s[0] = i;
                     s[1] = 0;
-                    putfonts8_asc_sht(sheet, cursor_x, 28, COL8_FFFFFF, COL8_000000, s, 1);
+                    putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
                     cursor_x+=8;
                 }
             }
             
             if (cursor_c >= 0) {
-                boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, 28, cursor_x + 7, 43);
+                boxfill8(sheet->buf, sheet->bxsize, cursor_c, cursor_x, cursor_y, cursor_x + 7, cursor_y+15);
             }
-            sheet_refresh(sheet, cursor_x, 28, cursor_x + 8, 44);
+            sheet_refresh(sheet, cursor_x, cursor_y, cursor_x + 8, cursor_y+16);
         }
     }
 }
@@ -313,11 +320,15 @@ void HariMain(){
                     key_leds ^= 1;
                     fifo32_put(&keycmd, KEYCMD_LED);
                     fifo32_put(&keycmd, key_leds);
-                }else if(i==0xfa){//numlock
+                }else if(i==0xfa){//向指示灯发送成功
                     keycmd_wait = -1;
-                }else if(i==0xfe){//numlock
+                }else if(i==0xfe){//向指示灯发送失败
                     wait_KBC_sendready();
                     io_out8(PORT_KEYDAT, keycmd_wait);
+                }else if(i==0x1c){//回车键
+                    if (key_to!=0) {
+                        fifo32_put(&task_cons->fifo, 10+256);
+                    }
                 }
                 
                 if (cursor_c >=0) {
