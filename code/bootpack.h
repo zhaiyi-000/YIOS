@@ -289,3 +289,28 @@ struct TASK *task_alloc(void);
 void task_run(struct TASK *task, int level, int priority);
 void task_switch(void);
 void task_sleep(struct TASK *task);
+
+
+// window/console/file
+
+
+#define KEYCMD_LED 0xed  //键盘指示灯用
+
+struct FILEINFO {
+    unsigned char name[8], ext[3], type;
+    char reserve[10];
+    unsigned short time, date, clustno;
+    unsigned int size;
+};
+
+void make_window8(unsigned char *buf, int xsize, int ysize, char *title,char act);
+void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l);
+void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
+void make_wtitle8(unsigned char *buf, int xsize,char *title, char act);
+int cons_newline(int cursor_y, struct SHEET *sheet);
+void file_readfat(int *fat, unsigned char *img);
+void file_loadfile(int clustno, int size, char *buf, int *fat, char *img);
+
+// console
+void console_task(struct SHEET *sheet, unsigned int memtotal);
+

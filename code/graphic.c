@@ -92,6 +92,12 @@ void putfonts8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s
 	}
 }
 
+void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l) {
+    boxfill8(sht->buf, sht->bxsize, b, x, y, x+8*l-1, y+15);
+    putfonts8_asc(sht->buf, sht->bxsize, x, y, c, s);
+    sheet_refresh( sht, x, y, x+l*8, y+16);   //因为里面是 < 不是<= ,所有是16不是15
+}
+
 void init_mouse_cursor8(char *mouse,int bc) {
 	static char cursor[16][16] = {
 		"**************..",
