@@ -91,6 +91,7 @@ void asm_inthandler27(void);
 void asm_inthandler20(void);
 void load_tr(int tr);
 void farjmp(int eip, int cs);
+void farcall(int eip, int cs);
 
 int load_cr0(void);
 void store_cr0(int data);

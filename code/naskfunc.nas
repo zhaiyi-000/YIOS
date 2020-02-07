@@ -10,7 +10,7 @@
     GLOBAL _asm_inthandler21,_asm_inthandler2c,_asm_inthandler27,_asm_inthandler20
     GLOBAL _load_cr0,_store_cr0
     GLOBAL _memtest_sub
-    GLOBAL _load_tr,_farjmp
+    GLOBAL _load_tr,_farjmp,_farcall
     GLOBAL _asm_cons_putchar
     
     EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20,_cons_putchar
@@ -226,9 +226,13 @@ _load_tr:
 _farjmp:
     jmp far [esp+4]
     ret
+    
+_farcall:
+    call far [esp+4]
+    ret
 
 
-_asm_cons_putchar:
+_asm_cons_putchar:    ;写这个函数的作用是把参数压进栈
     push 1
     and eax,0xff
     push eax
