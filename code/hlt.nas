@@ -1,5 +1,5 @@
 [BITS 32]
 
     mov al,'A'
-    call 2*8:0x14E
+    int 0x40
     retf

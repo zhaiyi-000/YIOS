@@ -239,4 +239,4 @@ _asm_cons_putchar:    ;写这个函数的作用是把参数压进栈
     push dword [0xfec];
     call _cons_putchar
     add esp,12
-    retf
+    iretd
