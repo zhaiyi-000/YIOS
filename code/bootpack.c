@@ -1,6 +1,13 @@
 #include "bootpack.h"
 
-#define KEYCMD_LED 0xed
+#define KEYCMD_LED 0xed  //键盘指示灯用
+
+struct FILEINFO {
+    unsigned char name[8], ext[3], type;
+    char reserve[10];
+    unsigned short time, date, clustno;
+    unsigned int size;
+};
 
 void yiPrintf(char *chs){
     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
@@ -20,6 +27,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
     struct TIMER *timer;
     struct TASK *task = task_now();
     struct FIFO32 *fifo = &task->fifo;
+    struct FILEINFO *finfo = (struct FILEINFO *)(ADR_DISKIMG+0x2600);
 
     int i, fifobuf[128], cursor_x = 16,cursor_y = 28, cursor_c = -1;
     fifo32_init(fifo, 128, fifobuf, task);
@@ -87,6 +95,26 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                         }
                         sheet_refresh(sheet, 8, 28, 8+240, 28+128);
                         cursor_y = 28;
+                    }else if (strcmp(cmdline,"123")==0) {
+                        for (x = 0; x < 224; x++) {
+                            if (finfo[x].name[0] == 0x0) {
+                                break;
+                            }
+                            if (finfo[x].name[0]!=0xe5) { //0xe5代表文件删除了
+                                if ((finfo[x].type & 0x18)==0) { //非目录,非非文件信息
+                                    sprintf(s, "filename.exe    %7d",finfo[x].size);
+                                    for (y = 0; y < 8; y++) {
+                                        s[y] = finfo[x].name[y];
+                                    }
+                                    for (y = 0; y < 3; y++) {
+                                        s[9+y] = finfo[x].ext[y];
+                                    }
+                                    putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, s, 30);
+                                    cursor_y = cons_newline(cursor_y, sheet);
+                                }
+                            }
+                        }
+                        cursor_y = cons_newline(cursor_y, sheet);
                     }else if(cmdline[0]!=0){
                         putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, "Bad command.", 30);
                         cursor_y = cons_newline(cursor_y, sheet);

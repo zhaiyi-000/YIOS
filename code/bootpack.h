@@ -1,6 +1,5 @@
 #include <stdio.h>  //可以解决关于 sprintf 的警告
 
-#define ADR_BOOTINFO 0xff0
 #define MEMMAN_ADDR            0x003c0000
 #define PORT_KEYDAT        0x0060
 #define PORT_KEYCMD        0x0064
@@ -60,6 +59,9 @@ struct BOOTINFO {
 	short vmode,scrnx,scrny;
 	unsigned char * vram;
 };
+
+#define ADR_BOOTINFO    0x00000ff0
+#define ADR_DISKIMG        0x00100000
 
 void init_palette(void);
 void set_palette(int start, int end, unsigned char *rgb);
