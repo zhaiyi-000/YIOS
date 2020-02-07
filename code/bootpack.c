@@ -12,8 +12,9 @@ void make_window8(unsigned char *buf, int xsize, int ysize, char *title,char act
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l);
 void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
 void make_wtitle8(unsigned char *buf, int xsize,char *title, char act);
+int cons_newline(int cursor_y, struct SHEET *sheet);
 
-void console_task(struct SHEET *sheet)
+void console_task(struct SHEET *sheet, unsigned int memtotal)
 {
     int x,y;
     struct TIMER *timer;
@@ -22,7 +23,8 @@ void console_task(struct SHEET *sheet)
 
     int i, fifobuf[128], cursor_x = 16,cursor_y = 28, cursor_c = -1;
     fifo32_init(fifo, 128, fifobuf, task);
-    char s[100];
+    char s[100],cmdline[30];
+    struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
 
     timer = timer_alloc();
     timer_init(timer, fifo, 1);
@@ -64,33 +66,33 @@ void console_task(struct SHEET *sheet)
                         cursor_x -= 8;
                     }
                 }else if (i==10){
-                    if (cursor_y < 28+112) {
-                        putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_WHITE, COL8_BLACK, " ", 1);
-                        cursor_y+=16;
-                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, ">", 1);
-                        cursor_x = 16;
-                    }else{
-                        for (y = 28; y<28+112; y++) {
-                            for (x = 8; x < 8+240; x++) {
-                                sheet->buf[x+y*sheet->bxsize] = sheet->buf[x+(y+16)*sheet->bxsize];
-                            }
-                        }
+                    putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_WHITE, COL8_BLACK, " ", 1);
+                    cmdline[cursor_x/8-2] = 0;
+                    cursor_y = cons_newline(cursor_y, sheet);
+                    
+                    if (cmdline[0]=='2' && cmdline[1]=='1' && cmdline[2]=='2' && cmdline[3]==0) {
+                        sprintf(s, "total %dMB", memtotal/1024/1024);
+                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, s, 30);
+                        cursor_y = cons_newline(cursor_y, sheet);
                         
-                        for (y = 28+112; y < 28+128; y++) {
-                            for (x = 8; x < 8+240; x++) {
-                                sheet->buf[x+y*sheet->bxsize] = COL8_BLACK;
-                            }
-                        }
-                        sheet_refresh(sheet, 8, 28, 8+240, 28+128);
-                        
-                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, ">", 1);
-                        cursor_x=16;
+                        sprintf(s, "free %dKB", memman_total(memman)/1024);
+                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, s, 30);
+                    }else if(cmdline[0]!=0){
+                        putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, "Bad command.", 30);
                     }
+                    
+                    cursor_y = cons_newline(cursor_y, sheet);
+                    cursor_y = cons_newline(cursor_y, sheet);
+                    putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, ">", 1);
+                    cursor_x = 16;
                 }else{
-                    s[0] = i;
-                    s[1] = 0;
-                    putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
-                    cursor_x+=8;
+                    if (cursor_x < 240) {
+                        s[0] = i;
+                        s[1] = 0;
+                        cmdline[cursor_x/8-2] = i;
+                        putfonts8_asc_sht(sheet, cursor_x, cursor_y, COL8_FFFFFF, COL8_000000, s, 1);
+                        cursor_x+=8;
+                    }
                 }
             }
             
@@ -191,7 +193,7 @@ void HariMain(){
     make_window8(buf_cons, 256, 165, "console", 0);
     make_textbox8(sht_cons, 8, 28, 240, 128, COL8_000000);
     struct TASK *task_cons = task_alloc();
-    task_cons->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 8;
+    task_cons->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 12;
     task_cons->tss.eip = (int)console_task;
     task_cons->tss.es = 1 * 8;
     task_cons->tss.cs = 2 * 8;
@@ -200,6 +202,7 @@ void HariMain(){
     task_cons->tss.fs = 1 * 8;
     task_cons->tss.gs = 1 * 8;
     *((int *) (task_cons->tss.esp + 4)) = (int) sht_cons;
+    *((int *) (task_cons->tss.esp + 8)) = (int) memtotal;
     task_run(task_cons, 2, 2); /* level=2, priority=2 */
     sheet_updown(sht_cons, 2);
     sheet_slide(sht_cons, 32, 200);
@@ -508,4 +511,25 @@ void make_textbox8(struct SHEET *sht, int x0, int y0, int sx, int sy, int c)
     boxfill8(sht->buf, sht->bxsize, COL8_C6C6C6, x1 + 1, y0 - 2, x1 + 1, y1 + 1);
     boxfill8(sht->buf, sht->bxsize, c,           x0 - 1, y0 - 1, x1 + 0, y1 + 0);
     return;
+}
+
+int cons_newline(int cursor_y, struct SHEET *sheet){
+    int x,y;
+    if (cursor_y < 28+112) {
+        cursor_y+=16;
+    }else{
+        for (y = 28; y<28+112; y++) {
+            for (x = 8; x < 8+240; x++) {
+                sheet->buf[x+y*sheet->bxsize] = sheet->buf[x+(y+16)*sheet->bxsize];
+            }
+        }
+        
+        for (y = 28+112; y < 28+128; y++) {
+            for (x = 8; x < 8+240; x++) {
+                sheet->buf[x+y*sheet->bxsize] = COL8_BLACK;
+            }
+        }
+        sheet_refresh(sheet, 8, 28, 8+240, 28+128);
+    }
+    return cursor_y;
 }
