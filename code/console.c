@@ -41,6 +41,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
     cons.cur_x = 8;
     cons.cur_y = 28;
     cons.cur_c = -1;
+    *((int *)0xfec) = (int)&cons;
     
     cons_putchar(&cons,'>',1);
 
