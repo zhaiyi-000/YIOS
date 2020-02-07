@@ -70,19 +70,28 @@ void console_task(struct SHEET *sheet, unsigned int memtotal)
                     cmdline[cursor_x/8-2] = 0;
                     cursor_y = cons_newline(cursor_y, sheet);
                     
-                    if (cmdline[0]=='2' && cmdline[1]=='1' && cmdline[2]=='2' && cmdline[3]==0) {
+                    if (strcmp(cmdline,"212")==0) {
                         sprintf(s, "total %dMB", memtotal/1024/1024);
                         putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, s, 30);
                         cursor_y = cons_newline(cursor_y, sheet);
                         
                         sprintf(s, "free %dKB", memman_total(memman)/1024);
                         putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, s, 30);
+                        cursor_y = cons_newline(cursor_y, sheet);
+                        cursor_y = cons_newline(cursor_y, sheet);
+                    }else if (strcmp(cmdline,"321")==0) {
+                        for (y = 28; y < 28+128; y++) {
+                            for (x = 8; x < 8+240; x++) {
+                                sheet->buf[x+y*sheet->bxsize] = COL8_BLACK;
+                            }
+                        }
+                        sheet_refresh(sheet, 8, 28, 8+240, 28+128);
+                        cursor_y = 28;
                     }else if(cmdline[0]!=0){
                         putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, "Bad command.", 30);
+                        cursor_y = cons_newline(cursor_y, sheet);
+                        cursor_y = cons_newline(cursor_y, sheet);
                     }
-                    
-                    cursor_y = cons_newline(cursor_y, sheet);
-                    cursor_y = cons_newline(cursor_y, sheet);
                     putfonts8_asc_sht(sheet, 8, cursor_y, COL8_WHITE, COL8_BLACK, ">", 1);
                     cursor_x = 16;
                 }else{
