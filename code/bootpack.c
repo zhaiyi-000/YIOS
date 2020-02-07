@@ -203,7 +203,7 @@ void HariMain(){
     fifo32_put(&keycmd, KEYCMD_LED);
     fifo32_put(&keycmd, key_leds);
     
-    int cursor_x = 8;
+    int cursor_x = 8,cursor_c = 0;
     int i;
 	for(;;){
         if (fifo32_status(&keycmd) > 0 && keycmd_wait<0) {
@@ -258,10 +258,8 @@ void HariMain(){
                 if (i==0xe) { //退格
                     if (key_to==0) {
                         if (cursor_x > 8) {
-                            boxfill8(buf_win, sht_win->bxsize, COL8_WHITE, cursor_x, 30, cursor_x+2, 46);//消除原来光标
-                            sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
-                            cursor_x -= 8;
                             putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_WHITE, COL8_WHITE, " ", 1);
+                            cursor_x -= 8;
                         }
                     }else{
                         fifo32_put(&task_cons->fifo, 8+256);
@@ -272,10 +270,13 @@ void HariMain(){
                         key_to = 1;
                         make_wtitle8(buf_win, sht_win->bxsize, "task_a", 0);
                         make_wtitle8(buf_cons, sht_cons->bxsize, "console", 1);
+                        cursor_c = -1;
+                        boxfill8(buf_win, sht_win->bxsize, COL8_WHITE, cursor_x, 30, cursor_x+7, 45);
                     }else{
                         key_to = 0;
                         make_wtitle8(buf_win, sht_win->bxsize, "task_a", 1);
                         make_wtitle8(buf_cons, sht_cons->bxsize, "console", 0);
+                        cursor_c = COL8_BLACK;
                     }
                     
                     sheet_refresh(sht_win, 0, 0, sht_win->bxsize, 21);
@@ -306,6 +307,11 @@ void HariMain(){
                     wait_KBC_sendready();
                     io_out8(PORT_KEYDAT, keycmd_wait);
                 }
+                
+                if (cursor_c >=0) {
+                    boxfill8(buf_win, sht_win->bxsize, cursor_c, cursor_x, 30, cursor_x+7, 45);
+                }
+                sheet_refresh( sht_win, cursor_x, 30, cursor_x+8, 46);
                 
                 
             }else if(512 <= i && i <= 767){
@@ -352,16 +358,24 @@ void HariMain(){
                         sheet_slide(sht_win, mx - 80, my - 8);
                     }
                 }
-            }else if(i==0){
-                timer_init(timer, &fifo, 1);
-                boxfill8(buf_win, sht_win->bxsize, COL8_BLACK, cursor_x, 30, cursor_x+2, 46);
+            }else if(i<=1){
+                if (i==0) {
+                    timer_init(timer, &fifo, 1);
+                    if (cursor_c >= 0) {
+                        cursor_c = COL8_BLACK;
+                    }
+                    
+                }else{
+                    timer_init(timer, &fifo, 0);
+                    if (cursor_c >= 0) {
+                        cursor_c = COL8_WHITE;
+                    }
+                }
                 timer_settime(timer, 50);
-                sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
-            }else if(i==1){
-                timer_init(timer, &fifo, 0);
-                boxfill8(buf_win, sht_win->bxsize, COL8_WHITE, cursor_x, 30, cursor_x+2, 46);
-                timer_settime(timer, 50);
-                sheet_refresh( sht_win, cursor_x, 30, cursor_x+2, 46);
+                if (cursor_c>=0) {
+                    boxfill8(buf_win, sht_win->bxsize, cursor_c, cursor_x, 30, cursor_x+7, 45);
+                    sheet_refresh( sht_win, cursor_x, 30, cursor_x+8, 46);
+                }
             }
         }
 	}
