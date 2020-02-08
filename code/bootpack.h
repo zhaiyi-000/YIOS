@@ -99,7 +99,7 @@ void asm_inthandler0d(void);
 int load_cr0(void);
 void store_cr0(int data);
 
-void start_app(int eip, int cs, int esp, int ds);
+void start_app(int eip, int cs, int esp, int ds, int *tss_esp0);
 
 
 

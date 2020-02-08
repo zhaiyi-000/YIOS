@@ -3,6 +3,7 @@
         MOV        EDX,2
         MOV        EBX,msg
         INT        0x40
-        RETF
+        mov edx,4
+        int 0x40
 msg:
         DB    "hello",0

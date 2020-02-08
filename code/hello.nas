@@ -10,6 +10,7 @@ putloop:
         ADD        ECX,1
         JMP        putloop
 fin:
-        RETF
+        mov edx,4
+        int 0x40
 msg:
         DB    "hello",0

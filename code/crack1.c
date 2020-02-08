@@ -6,9 +6,11 @@
 //  Copyright © 2020 YI. All rights reserved.
 //
 
+void api_end(void);
+
 void HariMain(void)
 {
     *((char *) 0x00102600) = 0;
-    return;
+    api_end();
 }
 

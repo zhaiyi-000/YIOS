@@ -102,11 +102,6 @@ _asm_inthandler21:
     push ds
     push es
     pushad
-    
-    mov ax,ss
-    cmp ax,1*8
-    jne .from_app
-    
     mov eax,esp
     push eax
     mov ax,ss
@@ -119,35 +114,12 @@ _asm_inthandler21:
     pop ds
     iret
     
-.from_app:
-    mov eax,1*8
-    mov es,ax
-    mov ecx,[0xfe4]
-    add ecx,-8
-    mov [ecx+4],ss
-    mov [ecx],esp
-    mov ss,ax
-    mov es,ax
-    mov esp,ecx
-    call _inthandler20
-    pop ecx
-    pop eax
-    mov ss,ax
-    mov esp,ecx
-    popad
-    pop ds
-    pop es
-    iretd
+
     
 _asm_inthandler2c:
     push ds
     push es
     pushad
-    
-    mov ax,ss
-    cmp ax,1*8
-    jne .from_app
-    
     mov eax,esp
     push eax
     mov ax,ss
@@ -160,36 +132,12 @@ _asm_inthandler2c:
     pop ds
     iret
     
-.from_app:
-    mov eax,1*8
-    mov es,ax
-    mov ecx,[0xfe4]
-    add ecx,-8
-    mov [ecx+4],ss
-    mov [ecx],esp
-    mov ss,ax
-    mov es,ax
-    mov esp,ecx
-    call _inthandler2c
-    pop ecx
-    pop eax
-    mov ss,ax
-    mov esp,ecx
-    popad
-    pop ds
-    pop es
-    iretd
 
 
 _asm_inthandler27:
     push ds
     push es
     pushad
-    
-    mov ax,ss
-    cmp ax,1*8
-    jne .from_app
-    
     mov eax,esp
     push eax
     mov ax,ss
@@ -202,35 +150,12 @@ _asm_inthandler27:
     pop ds
     iret
     
-.from_app:
-    mov eax,1*8
-    mov es,ax
-    mov ecx,[0xfe4]
-    add ecx,-8
-    mov [ecx+4],ss
-    mov [ecx],esp
-    mov ss,ax
-    mov es,ax
-    mov esp,ecx
-    call _inthandler27
-    pop ecx
-    pop eax
-    mov ss,ax
-    mov esp,ecx
-    popad
-    pop ds
-    pop es
-    iretd
+
     
 _asm_inthandler20:
     push ds
     push es
     pushad
-    
-    mov ax,ss
-    cmp ax,1*8
-    jne .from_app
-    
     mov eax,esp
     push eax
     mov ax,ss
@@ -242,26 +167,6 @@ _asm_inthandler20:
     pop es
     pop ds
     iret
-    
-.from_app:
-    mov eax,1*8
-    mov es,ax
-    mov ecx,[0xfe4]
-    add ecx,-8
-    mov [ecx+4],ss
-    mov [ecx],esp
-    mov ss,ax
-    mov es,ax
-    mov esp,ecx
-    call _inthandler20
-    pop ecx
-    pop eax
-    mov ss,ax
-    mov esp,ecx
-    popad
-    pop ds
-    pop es
-    iretd
     
     
 _asm_inthandler0d:
@@ -270,17 +175,14 @@ _asm_inthandler0d:
     push ds
     push es
     pushad
-    
-    mov ax,ss
-    cmp ax,1*8
-    jne .from_app
-    
     mov eax,esp
     push eax
     mov ax,ss
     mov ds,ax
     mov es,ax
     call _inthandler0d
+    cmp eax,0
+    jne end_app
     pop eax
     popad
     pop es
@@ -290,44 +192,7 @@ _asm_inthandler0d:
     
     iret
     
-.from_app:
-    cli  ;关闭中断
 
-    mov eax,1*8
-    mov ds,ax
-    mov ecx,[0xfe4]
-    add ecx,-8
-    mov [ecx+4],ss
-    mov [ecx],esp
-    mov ss,ax
-    mov es,ax
-    mov esp,ecx
-    sti
-    call _inthandler0d
-    cli
-    cmp eax,0
-    jne .kill
-    pop ecx
-    pop eax
-    mov ss,ax
-    mov esp,ecx
-    popad
-    pop ds
-    pop es
-    iretd
-    
-.kill:
-    ;将应用程序强制kill
-    mov eax,1*8
-    mov es,ax
-    mov ss,ax
-    mov ds,ax
-    mov fs,ax
-    mov gs,ax
-    mov esp,[0xfe4]
-    sti
-    popad ;p440
-    ret
 
 
 _load_cr0:
@@ -399,95 +264,49 @@ _farcall:
     ret
 
 
-_asm_hrb_api:    ;0x40会调用到这里
-    ;sti
-    push ds
-    push es
-    pushad
-    
-    mov eax,1*8
-    mov ds,ax
-    mov ecx,[0xfe4]
-    add ecx,-40
-    mov [ecx+32],esp
-    mov [ecx+36],ss
-    
-    mov edx,[esp]
-    mov ebx,[esp+4]
-    mov [ecx],edx
-    mov [ecx+4],ebx
-    
-    mov edx,[esp+8]
-    mov ebx,[esp+12]
-    mov [ecx+8],edx
-    mov [ecx+12],ebx
-    
-    mov edx,[esp+16]
-    mov ebx,[esp+20]
-    mov [ecx+16],edx
-    mov [ecx+20],ebx
-    
-    mov edx,[esp+24]
-    mov ebx,[esp+28]
-    mov [ecx+24],edx
-    mov [ecx+28],ebx
-    
-    mov es,ax
-    mov ss,ax
-    mov esp,ecx
-    sti
-    
-    call _hrb_api
-    mov ecx,[esp+32]
-    mov eax,[esp+36]
-    cli
-    mov ss,ax
-    mov esp,ecx
-    popad
-    pop es
-    pop ds
-    iretd
-    
-    
-    pushad
-    call _hrb_api
-    add esp,32
-    popad
-    iretd  ;这个命令自动执行sti
+_asm_hrb_api:
+        STI
+        PUSH    DS
+        PUSH    ES
+        PUSHAD        ; 保存のためのPUSH
+        PUSHAD        ; hrb_apiにわたすためのPUSH
+        MOV        AX,SS
+        MOV        DS,AX        ; OS用のセグメントをDSとESにも入れる
+        MOV        ES,AX
+        CALL    _hrb_api
+        CMP        EAX,0        ; EAXが0でなければアプリ終了処理
+        JNE        end_app
+        ADD        ESP,32
+        POPAD
+        POP        ES
+        POP        DS
+        IRETD
+end_app:
+;    EAXはtss.esp0の番地
+        MOV        ESP,[EAX]
+        POPAD
+        RET            
 
 
 ; 从操作系统调用到用户程序
-_start_app:        ; void start_app(int eip, int cs, int esp, int ds);
-    pushad
-    mov eax,[esp+36]
-    mov ecx,[esp+40]
-    mov edx,[esp+44]
-    mov ebx,[esp+48]
-    mov [0xfe4],esp
-    ;为什么不把系统栈保存在用户栈?
-    ;因为所有的app都要使用这个系统栈,只有一个系统栈,所有的app都去[0xfe4]这个地方取
-    
-    cli
-    mov es,bx
-    mov ss,bx
-    mov ds,bx
-    mov fs,bx
-    mov gs,bx
-    mov esp,edx
-    sti
-    push ecx
-    push eax
-    call far [esp]
-
-;应用程序返回
-    mov eax,1*8
-    cli
-    mov es,ax
-    mov ss,ax
-    mov ds,ax
-    mov fs,ax
-    mov gs,ax
-    mov esp,[0xfe4]
-    sti
-    popad
-    ret
+_start_app:        ; void start_app(int eip, int cs, int esp, int ds, int *tss_esp0);
+        PUSHAD        ; 32ビットレジスタを全部保存しておく
+        MOV        EAX,[ESP+36]    ; アプリ用のEIP
+        MOV        ECX,[ESP+40]    ; アプリ用のCS
+        MOV        EDX,[ESP+44]    ; アプリ用のESP
+        MOV        EBX,[ESP+48]    ; アプリ用のDS/SS
+        MOV        EBP,[ESP+52]    ; tss.esp0の番地
+        MOV        [EBP  ],ESP        ; OS用のESPを保存
+        MOV        [EBP+4],SS        ; OS用のSSを保存
+        MOV        ES,BX
+        MOV        DS,BX
+        MOV        FS,BX
+        MOV        GS,BX
+;    以下はRETFでアプリに行かせるためのスタック調整
+        OR        ECX,3            ; アプリ用のセグメント番号に3をORする
+        OR        EBX,3            ; アプリ用のセグメント番号に3をORする
+        PUSH    EBX                ; アプリのSS
+        PUSH    EDX                ; アプリのESP
+        PUSH    ECX                ; アプリのCS
+        PUSH    EAX                ; アプリのEIP
+        RETF

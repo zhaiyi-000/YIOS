@@ -8,6 +8,7 @@
 
 
 void api_putchar(int c);
+void api_end(void);
 
 void HariMain(void){
     api_putchar('Z');
@@ -15,4 +16,6 @@ void HariMain(void){
     api_putchar('a');
     api_putchar('I');
     api_putchar('1');
+    
+    api_end();
 }
