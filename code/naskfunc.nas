@@ -7,14 +7,14 @@
 	GLOBAL _io_out8,_io_out16,_io_out32
 	GLOBAL _io_load_eflags,_io_store_eflags
 	GLOBAL _load_gdtr,_load_idtr
-    GLOBAL _asm_inthandler21,_asm_inthandler2c,_asm_inthandler27,_asm_inthandler20,_asm_inthandler0d
+    GLOBAL _asm_inthandler21,_asm_inthandler2c,_asm_inthandler27,_asm_inthandler20,_asm_inthandler0d,_asm_inthandler0c
     GLOBAL _load_cr0,_store_cr0
     GLOBAL _memtest_sub
     GLOBAL _load_tr,_farjmp,_farcall
     GLOBAL _asm_hrb_api,_start_app
     
     EXTERN _hrb_api
-    EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20,_inthandler0d
+    EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20,_inthandler0d,_inthandler0c
 
 	
 [SECTION .text]
@@ -99,8 +99,8 @@ _load_idtr:		; void load_idtr(int limit, int addr);
 
     
 _asm_inthandler21:
-    push ds
     push es
+    push ds
     pushad
     mov eax,esp
     push eax
@@ -110,15 +110,15 @@ _asm_inthandler21:
     call _inthandler21
     pop eax
     popad
-    pop es
     pop ds
+    pop es
     iret
     
 
     
 _asm_inthandler2c:
-    push ds
     push es
+    push ds
     pushad
     mov eax,esp
     push eax
@@ -128,15 +128,15 @@ _asm_inthandler2c:
     call _inthandler2c
     pop eax
     popad
-    pop es
     pop ds
+    pop es
     iret
     
 
 
 _asm_inthandler27:
-    push ds
     push es
+    push ds
     pushad
     mov eax,esp
     push eax
@@ -146,15 +146,15 @@ _asm_inthandler27:
     call _inthandler27
     pop eax
     popad
-    pop es
     pop ds
+    pop es
     iret
     
 
     
 _asm_inthandler20:
-    push ds
     push es
+    push ds
     pushad
     mov eax,esp
     push eax
@@ -164,16 +164,16 @@ _asm_inthandler20:
     call _inthandler20
     pop eax
     popad
-    pop es
     pop ds
+    pop es
     iret
     
     
 _asm_inthandler0d:
     sti ;打开中断
 
-    push ds
     push es
+    push ds
     pushad
     mov eax,esp
     push eax
@@ -185,11 +185,34 @@ _asm_inthandler0d:
     jne end_app
     pop eax
     popad
-    pop es
     pop ds
+    pop es
     
     add esp,4
     
+    iret
+    
+    
+_asm_inthandler0c:
+    sti ;打开中断
+    
+    push es
+    push ds
+    pushad
+    mov eax,esp
+    push eax
+    mov ax,ss
+    mov ds,ax
+    mov es,ax
+    call _inthandler0c
+    cmp eax,0
+    jne end_app
+    pop eax
+    popad
+    pop ds
+    pop es
+
+    add esp,4
     iret
     
 

@@ -95,6 +95,7 @@ void farcall(int eip, int cs);
 
 void asm_hrb_api(void);
 void asm_inthandler0d(void);
+void asm_inthandler0c(void);
 
 int load_cr0(void);
 void store_cr0(int data);
