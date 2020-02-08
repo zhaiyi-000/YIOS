@@ -249,6 +249,13 @@ void HariMain(){
                     if (key_to!=0) {
                         fifo32_put(&task_cons->fifo, 10+256);
                     }
+                }else if(i==0x3b && key_shift != 0 && task_cons->tss.ss0 != 0) {//shift+f1 强制结束
+                    struct CONSOLE *cons = (struct CONSOLE *)*((int *)0xfec);
+                    cons_putstr0(cons, "\nBreak(key) :\n");
+                    io_cli();
+                    task_cons->tss.eax = (int)&(task_cons->tss.esp0);
+                    task_cons->tss.eip = (int)asm_end_app;
+                    io_sti();
                 }
                 
                 if (cursor_c >=0) {

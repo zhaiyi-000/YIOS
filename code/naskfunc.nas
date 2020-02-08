@@ -11,7 +11,7 @@
     GLOBAL _load_cr0,_store_cr0
     GLOBAL _memtest_sub
     GLOBAL _load_tr,_farjmp,_farcall
-    GLOBAL _asm_hrb_api,_start_app
+    GLOBAL _asm_hrb_api,_start_app,_asm_end_app
     
     EXTERN _hrb_api
     EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20,_inthandler0d,_inthandler0c
@@ -182,7 +182,7 @@ _asm_inthandler0d:
     mov es,ax
     call _inthandler0d
     cmp eax,0
-    jne end_app
+    jne _asm_end_app
     pop eax
     popad
     pop ds
@@ -206,7 +206,7 @@ _asm_inthandler0c:
     mov es,ax
     call _inthandler0c
     cmp eax,0
-    jne end_app
+    jne _asm_end_app
     pop eax
     popad
     pop ds
@@ -298,15 +298,16 @@ _asm_hrb_api:
         MOV        ES,AX
         CALL    _hrb_api
         CMP        EAX,0        ; EAXが0でなければアプリ終了処理
-        JNE        end_app
+        JNE        _asm_end_app
         ADD        ESP,32
         POPAD
         POP        ES
         POP        DS
         IRETD
-end_app:
+_asm_end_app:
 ;    EAXはtss.esp0の番地
         MOV        ESP,[EAX]
+        mov dword [eax+4],0  ;tss.ss0
         POPAD
         RET            
 

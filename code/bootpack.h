@@ -96,6 +96,9 @@ void farcall(int eip, int cs);
 void asm_hrb_api(void);
 void asm_inthandler0d(void);
 void asm_inthandler0c(void);
+void asm_end_app(void);
+
+
 
 int load_cr0(void);
 void store_cr0(int data);
@@ -318,5 +321,15 @@ void file_readfat(int *fat, unsigned char *img);
 void file_loadfile(int clustno, int size, char *buf, int *fat, char *img);
 
 // console
+struct CONSOLE {
+    struct SHEET *sht;
+    int cur_x, cur_y, cur_c;
+};
+
+void cons_newline(struct CONSOLE *cons);
+void cons_runcmd(char *cmdline, struct CONSOLE *cons, int *fat, unsigned int memtotal);
+void cons_putchar(struct CONSOLE *cons, int chr,char move);
+void cons_putstr0(struct CONSOLE *cons, char *s);
+void cons_putstr1(struct CONSOLE *cons, char *s,int l);
 void console_task(struct SHEET *sheet, unsigned int memtotal);
 struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max);

@@ -11,11 +11,15 @@ void api_putchar(int c);
 void api_end(void);
 
 void HariMain(void){
-    api_putchar('Z');
-    api_putchar('h');
-    api_putchar('a');
-    api_putchar('I');
-    api_putchar('1');
+//    api_putchar('Z');
+//    api_putchar('h');
+//    api_putchar('a');
+//    api_putchar('I');
+//    api_putchar('1');
+    
+    for (; ; ) {
+        api_putchar('z');
+    }
     
     api_end();
 }
