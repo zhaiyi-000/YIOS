@@ -7,13 +7,14 @@
 	GLOBAL _io_out8,_io_out16,_io_out32
 	GLOBAL _io_load_eflags,_io_store_eflags
 	GLOBAL _load_gdtr,_load_idtr
-    GLOBAL _asm_inthandler21,_asm_inthandler2c,_asm_inthandler27,_asm_inthandler20
+    GLOBAL _asm_inthandler21,_asm_inthandler2c,_asm_inthandler27,_asm_inthandler20,_asm_inthandler0d
     GLOBAL _load_cr0,_store_cr0
     GLOBAL _memtest_sub
     GLOBAL _load_tr,_farjmp,_farcall
     GLOBAL _asm_hrb_api,_start_app
     
-    EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20,_hrb_api
+    EXTERN _hrb_api
+    EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20,_inthandler0d
 
 	
 [SECTION .text]
@@ -261,6 +262,72 @@ _asm_inthandler20:
     pop ds
     pop es
     iretd
+    
+    
+_asm_inthandler0d:
+    sti ;打开中断
+
+    push ds
+    push es
+    pushad
+    
+    mov ax,ss
+    cmp ax,1*8
+    jne .from_app
+    
+    mov eax,esp
+    push eax
+    mov ax,ss
+    mov ds,ax
+    mov es,ax
+    call _inthandler0d
+    pop eax
+    popad
+    pop es
+    pop ds
+    
+    add esp,4
+    
+    iret
+    
+.from_app:
+    cli  ;关闭中断
+
+    mov eax,1*8
+    mov ds,ax
+    mov ecx,[0xfe4]
+    add ecx,-8
+    mov [ecx+4],ss
+    mov [ecx],esp
+    mov ss,ax
+    mov es,ax
+    mov esp,ecx
+    sti
+    call _inthandler0d
+    cli
+    cmp eax,0
+    jne .kill
+    pop ecx
+    pop eax
+    mov ss,ax
+    mov esp,ecx
+    popad
+    pop ds
+    pop es
+    iretd
+    
+.kill:
+    ;将应用程序强制kill
+    mov eax,1*8
+    mov es,ax
+    mov ss,ax
+    mov ds,ax
+    mov fs,ax
+    mov gs,ax
+    mov esp,[0xfe4]
+    sti
+    popad ;p440
+    ret
 
 
 _load_cr0:
