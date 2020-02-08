@@ -11,7 +11,7 @@
     GLOBAL _load_cr0,_store_cr0
     GLOBAL _memtest_sub
     GLOBAL _load_tr,_farjmp,_farcall
-    GLOBAL _asm_hrb_api
+    GLOBAL _asm_hrb_api,_start_app
     
     EXTERN _inthandler21,_inthandler2c,_inthandler27,_inthandler20,_hrb_api
 
@@ -101,6 +101,11 @@ _asm_inthandler21:
     push ds
     push es
     pushad
+    
+    mov ax,ss
+    cmp ax,1*8
+    jne .from_app
+    
     mov eax,esp
     push eax
     mov ax,ss
@@ -113,10 +118,35 @@ _asm_inthandler21:
     pop ds
     iret
     
+.from_app:
+    mov eax,1*8
+    mov es,ax
+    mov ecx,[0xfe4]
+    add ecx,-8
+    mov [ecx+4],ss
+    mov [ecx],esp
+    mov ss,ax
+    mov es,ax
+    mov esp,ecx
+    call _inthandler20
+    pop ecx
+    pop eax
+    mov ss,ax
+    mov esp,ecx
+    popad
+    pop ds
+    pop es
+    iretd
+    
 _asm_inthandler2c:
     push ds
     push es
     pushad
+    
+    mov ax,ss
+    cmp ax,1*8
+    jne .from_app
+    
     mov eax,esp
     push eax
     mov ax,ss
@@ -128,12 +158,37 @@ _asm_inthandler2c:
     pop es
     pop ds
     iret
+    
+.from_app:
+    mov eax,1*8
+    mov es,ax
+    mov ecx,[0xfe4]
+    add ecx,-8
+    mov [ecx+4],ss
+    mov [ecx],esp
+    mov ss,ax
+    mov es,ax
+    mov esp,ecx
+    call _inthandler2c
+    pop ecx
+    pop eax
+    mov ss,ax
+    mov esp,ecx
+    popad
+    pop ds
+    pop es
+    iretd
 
 
 _asm_inthandler27:
     push ds
     push es
     pushad
+    
+    mov ax,ss
+    cmp ax,1*8
+    jne .from_app
+    
     mov eax,esp
     push eax
     mov ax,ss
@@ -146,10 +201,35 @@ _asm_inthandler27:
     pop ds
     iret
     
+.from_app:
+    mov eax,1*8
+    mov es,ax
+    mov ecx,[0xfe4]
+    add ecx,-8
+    mov [ecx+4],ss
+    mov [ecx],esp
+    mov ss,ax
+    mov es,ax
+    mov esp,ecx
+    call _inthandler27
+    pop ecx
+    pop eax
+    mov ss,ax
+    mov esp,ecx
+    popad
+    pop ds
+    pop es
+    iretd
+    
 _asm_inthandler20:
     push ds
     push es
     pushad
+    
+    mov ax,ss
+    cmp ax,1*8
+    jne .from_app
+    
     mov eax,esp
     push eax
     mov ax,ss
@@ -161,6 +241,26 @@ _asm_inthandler20:
     pop es
     pop ds
     iret
+    
+.from_app:
+    mov eax,1*8
+    mov es,ax
+    mov ecx,[0xfe4]
+    add ecx,-8
+    mov [ecx+4],ss
+    mov [ecx],esp
+    mov ss,ax
+    mov es,ax
+    mov esp,ecx
+    call _inthandler20
+    pop ecx
+    pop eax
+    mov ss,ax
+    mov esp,ecx
+    popad
+    pop ds
+    pop es
+    iretd
 
 
 _load_cr0:
@@ -232,11 +332,95 @@ _farcall:
     ret
 
 
-_asm_hrb_api:    ;写这个函数的作用是把参数压进栈
-    sti     ;这一句我一开始忘了加也没问题,不造问啥...
+_asm_hrb_api:    ;0x40会调用到这里
+    ;sti
+    push ds
+    push es
     pushad
+    
+    mov eax,1*8
+    mov ds,ax
+    mov ecx,[0xfe4]
+    add ecx,-40
+    mov [ecx+32],esp
+    mov [ecx+36],ss
+    
+    mov edx,[esp]
+    mov ebx,[esp+4]
+    mov [ecx],edx
+    mov [ecx+4],ebx
+    
+    mov edx,[esp+8]
+    mov ebx,[esp+12]
+    mov [ecx+8],edx
+    mov [ecx+12],ebx
+    
+    mov edx,[esp+16]
+    mov ebx,[esp+20]
+    mov [ecx+16],edx
+    mov [ecx+20],ebx
+    
+    mov edx,[esp+24]
+    mov ebx,[esp+28]
+    mov [ecx+24],edx
+    mov [ecx+28],ebx
+    
+    mov es,ax
+    mov ss,ax
+    mov esp,ecx
+    sti
+    
+    call _hrb_api
+    mov ecx,[esp+32]
+    mov eax,[esp+36]
+    cli
+    mov ss,ax
+    mov esp,ecx
+    popad
+    pop es
+    pop ds
+    iretd
+    
+    
     pushad
     call _hrb_api
     add esp,32
     popad
-    iretd
+    iretd  ;这个命令自动执行sti
+
+
+; 从操作系统调用到用户程序
+_start_app:        ; void start_app(int eip, int cs, int esp, int ds);
+    pushad
+    mov eax,[esp+36]
+    mov ecx,[esp+40]
+    mov edx,[esp+44]
+    mov ebx,[esp+48]
+    mov [0xfe4],esp
+    ;为什么不把系统栈保存在用户栈?
+    ;因为所有的app都要使用这个系统栈,只有一个系统栈,所有的app都去[0xfe4]这个地方取
+    
+    cli
+    mov es,bx
+    mov ss,bx
+    mov ds,bx
+    mov fs,bx
+    mov gs,bx
+    mov esp,edx
+    sti
+    push ecx
+    push eax
+    call far [esp]
+
+;应用程序返回
+    mov eax,1*8
+    cli
+    mov es,ax
+    mov ss,ax
+    mov ds,ax
+    mov fs,ax
+    mov gs,ax
+    mov esp,[0xfe4]
+    sti
+    popad
+    ret

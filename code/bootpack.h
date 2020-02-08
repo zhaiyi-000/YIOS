@@ -98,6 +98,8 @@ void asm_hrb_api(void);
 int load_cr0(void);
 void store_cr0(int data);
 
+void start_app(int eip, int cs, int esp, int ds);
+
 
 
 // dsctbl.c gdt idt 相关

@@ -222,7 +222,7 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline) {
     struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
     struct FILEINFO *finfo;
     struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
-    char *p,name[18];
+    char *p,*q,name[18];
     int i;
     
     for (i = 0; i < 13; i++) {
@@ -244,10 +244,13 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline) {
     }
     
     if (finfo != 0) {
+        //找到文件的情况
         p = (char *) memman_alloc_4k(memman, finfo->size);
+        q = (char *)memman_alloc_4k(memman, 64*1024);
         *((int *) 0xfe8) = (int)p;
         file_loadfile(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
         set_segmdesc(gdt + 1003, finfo->size - 1, (int) p, AR_CODE32_ER);
+        set_segmdesc(gdt + 1004, 64*1024 - 1, (int) q, AR_DATA32_RW);
         
         if (finfo->size>=8 && strncmp(p+4, "Hari", 4)==0) {
             p[0] = 0xe8;
@@ -259,8 +262,9 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline) {
         }
         
         
-        farcall(0, 1003 * 8);
+        start_app(0, 1003*8, 64*1024, 1004*8);
         memman_free_4k(memman, (int) p, finfo->size);
+        memman_free_4k(memman, (int) q, 64*1024);
         cons_newline(cons);
         return 1;
     }

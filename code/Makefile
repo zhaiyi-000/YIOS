@@ -89,6 +89,10 @@ haribote.img : ipl10.bin haribote.sys Makefile \
 
 # ƒRƒ}ƒ“ƒh
 
+c:
+	xcopy "z:\YIOS\code" "c:\Users\sg\Desktop\YIOS\code" /e/i/h/y
+	xcopy "c:\Users\sg\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
+
 img :
 	xcopy "z:\YIOS\code" "c:\Users\sg\Desktop\YIOS\code" /e/i/h/y
 	$(MAKE) haribote.img
@@ -108,9 +112,9 @@ clean :
 	-$(DEL) *.lst
 	-$(DEL) *.obj
 	-$(DEL) *.img
-	-$(DEL) bootpack.map
-	-$(DEL) bootpack.bim
-	-$(DEL) bootpack.hrb
+	-$(DEL) *.map
+	-$(DEL) *.bim
+	-$(DEL) *.hrb
 	-$(DEL) haribote.sys
 
 src_only :
