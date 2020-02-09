@@ -216,6 +216,7 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline) {
     char *p,*q,name[18];
     int i;
     struct TASK *task = task_now();
+    int segsiz,datsiz,esp,dathrb;
     
     for (i = 0; i < 13; i++) {
         if (cmdline[i]<=' ') {  //小于空格的基本都是不可显示字符
@@ -238,25 +239,28 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline) {
     if (finfo != 0) {
         //找到文件的情况
         p = (char *) memman_alloc_4k(memman, finfo->size);
-        q = (char *)memman_alloc_4k(memman, 64*1024);
-        *((int *) 0xfe8) = (int)p;
         file_loadfile(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
-        set_segmdesc(gdt + 1003, finfo->size - 1, (int) p, AR_CODE32_ER+0x60);//p443
-        set_segmdesc(gdt + 1004, 64*1024 - 1, (int) q, AR_DATA32_RW+0x60);
-        
-        if (finfo->size>=8 && strncmp(p+4, "Hari", 4)==0) { //这里的意思是:如果是c语言程序,需要call 1b,完了再retf p430
-            p[0] = 0xe8;
-            p[1] = 0x16;
-            p[2] = 0x00;
-            p[3] = 0x00;
-            p[4] = 0x00;
-            p[5] = 0xcb;
+        if (finfo->size >= 36 && strncmp(p+4, "Hari", 4)==0 && *p == 0) {
+            segsiz = *((int *)(p));
+            esp = *((int *)(p+0xc));
+            datsiz = *((int *)(p+0x10));
+            dathrb = *((int *)(p+0x14));
+            q = (char *)memman_alloc_4k(memman, segsiz);
+            *((int *) 0xfe8) = (int)p;
+            
+            set_segmdesc(gdt + 1003, finfo->size - 1, (int) p, AR_CODE32_ER+0x60);//p443
+            set_segmdesc(gdt + 1004, 64*1024 - 1, (int) q, AR_DATA32_RW+0x60);
+            
+            for (i = 0; i < datsiz; i++) {
+                q[esp+i] = p[dathrb+i];
+            }
+            
+            start_app(0x1b, 1003*8, esp, 1004*8,&(task->tss.esp0));
+            memman_free_4k(memman, (int) q, segsiz);
+        }else{
+            cons_putstr0(cons,".hrb file format error.\n");
         }
-        
-        
-        start_app(0, 1003*8, 64*1024, 1004*8,&(task->tss.esp0));
         memman_free_4k(memman, (int) p, finfo->size);
-        memman_free_4k(memman, (int) q, 64*1024);
         cons_newline(cons);
         return 1;
     }
