@@ -11,6 +11,9 @@ void api_putchar(int c);
 void api_putstr0(char *s);
 void api_end(void);
 
+int api_openwin(char *buf, int xsiz, int ysiz, int col_inv, char *title);
+char buf[150*50];
+
 void HariMain(void){
 //    api_putchar('Z');
 //    api_putchar('h');
@@ -24,5 +27,6 @@ void HariMain(void){
     
     api_putstr0("hello, world\n");
     
+    int win = api_openwin(buf, 150, 50, -1, "zhello");
     api_end();
 }

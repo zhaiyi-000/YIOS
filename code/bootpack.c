@@ -57,7 +57,7 @@ void HariMain(){
     
     //初始化图册相关
     struct SHTCTL *shtctl = shtctl_init(memman, bInfo->vram, bInfo->scrnx, bInfo->scrny);
-    
+    *((int *)0xfe4) = (int)shtctl;
     struct SHEET *sht_back = sheet_alloc(shtctl);
     unsigned char *buf_back = buf_back = (unsigned char *)memman_alloc_4k(memman, bInfo->scrnx* bInfo->scrny);
     sheet_setbuf(sht_back, buf_back, bInfo->scrnx, bInfo->scrny, -1);

@@ -246,7 +246,7 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline) {
             datsiz = *((int *)(p+0x10));
             dathrb = *((int *)(p+0x14));
             q = (char *)memman_alloc_4k(memman, segsiz);
-            *((int *) 0xfe8) = (int)p;
+            *((int *) 0xfe8) = (int)q;
             
             set_segmdesc(gdt + 1003, finfo->size - 1, (int) p, AR_CODE32_ER+0x60);//p443
             set_segmdesc(gdt + 1004, 64*1024 - 1, (int) q, AR_DATA32_RW+0x60);
@@ -298,18 +298,28 @@ void cons_putstr1(struct CONSOLE *cons, char *s,int l){
 }
 
 int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int eax){
-    int cs_base = *((int *)0xfe8);
+    int ds_base = *((int *)0xfe8);
     struct CONSOLE *cons = (struct CONSOLE *)*((int *)0xfec);
+    struct SHTCTL *shtctl = (struct SHTCTL *)*((int *)0xfe4);
+    struct SHEET *sht;
     struct TASK *task = task_now();
+    int *reg = &eax+1; //强行改先pushad的eax
     
     if (edx==1) {
         cons_putchar(cons, eax & 0xff, 1);
     }else if(edx ==2){
-        cons_putstr0(cons, (char *)ebx+cs_base);
+        cons_putstr0(cons, (char *)ebx+ds_base);
     }else if(edx ==3){
-        cons_putstr1(cons, (char *)ebx,ecx+cs_base);
+        cons_putstr1(cons, (char *)ebx,ecx+ds_base);
     }else if(edx ==4){
         return &(task->tss.esp0);
+    }else if(edx ==5){
+        sht = sheet_alloc(shtctl);
+        sheet_setbuf(sht, (char *)ebx+ds_base, esi, edi, eax);
+        make_window8((char *)ebx+ds_base, esi, edi, (char *)ecx+ds_base, 0);
+        sheet_slide(sht, 100, 50);
+        sheet_updown(sht, 3);
+        reg[7] = (int)sht;
     }
     return 0;
 }
