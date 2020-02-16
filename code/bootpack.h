@@ -237,7 +237,7 @@ void sheet_free(struct SHEET *sht);
 
 struct TIMER {
     struct TIMER *next;
-    unsigned int timeout,flags;
+    unsigned int timeout,flags,flags2; //flags2用来自动取消
     struct FIFO32 *fifo;
     int data;
 };
@@ -253,7 +253,7 @@ struct TIMER *timer_alloc(void);
 void timer_free(struct TIMER *timer);
 void timer_init(struct TIMER *timer, struct FIFO32 *fifo, int data);
 void timer_settime(struct TIMER *timer, unsigned int timeout);
-
+void timer_cancelall(struct FIFO32 *fifo);
 
 
 // mtask.c

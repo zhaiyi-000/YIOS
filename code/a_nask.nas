@@ -5,7 +5,7 @@
 
     GLOBAL _api_putchar,_api_end,_api_putstr0,_api_openwin,_api_putstrwin,_api_boxfilwin
     GLOBAL _api_initmalloc,_api_malloc,_api_free,_api_point,_api_refreshwin,_api_linewin
-    GLOBAL _api_closewin,_api_getkey
+    GLOBAL _api_closewin,_api_getkey,_api_alloctimer,_api_inittimer,_api_settimer,_api_freetimer
     
 [SECTION .text]
 
@@ -193,3 +193,35 @@ _api_getkey:
     int 0x40
     
     ret
+
+
+_api_alloctimer:    ; int api_alloctimer(void);
+        MOV        EDX,16
+        INT        0x40
+        RET
+
+_api_inittimer:        ; void api_inittimer(int timer, int data);
+        PUSH    EBX
+        MOV        EDX,17
+        MOV        EBX,[ESP+ 8]        ; timer
+        MOV        EAX,[ESP+12]        ; data
+        INT        0x40
+        POP        EBX
+        RET
+
+_api_settimer:        ; void api_settimer(int timer, int time);
+        PUSH    EBX
+        MOV        EDX,18
+        MOV        EBX,[ESP+ 8]        ; timer
+        MOV        EAX,[ESP+12]        ; time
+        INT        0x40
+        POP        EBX
+        RET
+
+_api_freetimer:        ; void api_freetimer(int timer);
+        PUSH    EBX
+        MOV        EDX,19
+        MOV        EBX,[ESP+ 8]        ; timer
+        INT        0x40
+        POP        EBX
+        RET
