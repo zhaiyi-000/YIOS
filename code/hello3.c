@@ -7,37 +7,38 @@
 //
 
 
-void api_putchar(int c);
-void api_putstr0(char *s);
-void api_end(void);
-
 int api_openwin(char *buf, int xsiz, int ysiz, int col_inv, char *title);
+void api_putstrwin(int win, int x, int y, int col, int len, char *str);
+void api_boxfilwin(int win, int x0, int y0, int x1, int y1, int col);
 void api_initmalloc(void);
 char *api_malloc(int size);
 void api_refreshwin(int win, int x0, int y0, int x1, int y1);
 void api_linewin(int win, int x0, int y0, int x1, int y1, int col);
 void api_closewin(int win);
 int api_getkey(int mode);
+void api_end(void);
 
-void HariMain(void){
+void HariMain(void)
+{
     char *buf;
-    int win, i;
+    int win, i, x, y;
     api_initmalloc();
     buf = api_malloc(160 * 100);
-    win = api_openwin(buf, 160, 100, -1, "lines");
-    for (i = 0; i < 8; i++) {
-        api_linewin(win + 1,  8, 26, 77, i * 9 + 26, i);
-        api_linewin(win + 1, 88, 26, i * 9 + 88, 89, i);
+    win = api_openwin(buf, 160, 100, -1, "walk");
+    api_boxfilwin(win, 4, 24, 155, 95, 0 /* 黒 */);
+    x = 76;
+    y = 56;
+    api_putstrwin(win, x, y, 3 /* 黄 */, 1, "*");
+    for (;;) {
+        i = api_getkey(1);
+        api_putstrwin(win, x, y, 0 /* 黒 */, 1, "*"); /* 黒で消す */
+        if (i == '4' && x >   4) { x -= 8; }
+        if (i == '6' && x < 148) { x += 8; }
+        if (i == '8' && y >  24) { y -= 8; }
+        if (i == '2' && y <  80) { y += 8; }
+        if (i == 0x0a) { break; } /* Enterで終了 */
+        api_putstrwin(win, x, y, 3 /* 黄 */, 1, "*");
     }
-    api_refreshwin(win,  6, 26, 154, 90);
-    
-    for (; ; ) {
-        if (api_getkey(1)==0xa) {
-            break;
-        }
-    }
-    
-    
     api_closewin(win);
     api_end();
 }

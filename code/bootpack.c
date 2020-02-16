@@ -6,6 +6,10 @@ void yiPrintf(char *chs){
     putfonts8_asc(bInfo->vram, bInfo->scrnx, 0, 120, COL8_YELLOW, chs);
 }
 
+void change_wtitle8(struct SHEET *sht, char act);
+int keywin_on(struct SHEET *key_win, struct SHEET *sht_win, int cur_c);
+int keywin_off(struct SHEET *key_win, struct SHEET *sht_win, int cur_c, int cur_x);
+
 void HariMain(){
     
     //数据
@@ -31,7 +35,7 @@ void HariMain(){
     };
     
     int j,x,y,mmx = -1,mmy = -1;
-    struct SHEET *sht = 0; //点击窗口调整图册用
+    struct SHEET *sht = 0,*key_win; //点击窗口调整图册用
     
     
     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
@@ -110,7 +114,9 @@ void HariMain(){
     sheet_updown(sht_cons, 2);
     sheet_slide(sht_cons, 32, 56);
     
-    
+    key_win = sht_win;
+    sht_cons->task = task_cons;
+    sht_cons->flags |= 0x20;
     
     //用于显示闪烁的光标
     struct TIMER *timer = timer_alloc();
@@ -134,7 +140,7 @@ void HariMain(){
     sprintf(s, "[total %dM, free %dK]",memtotal/1024/1024,memman_total(memman)/1024);
     putfonts8_asc_sht(sht_back, 0, 100, COL8_YELLOW, COL8_RED, s, 30);
 
-    int key_to = 0,key_shift = 0,key_leds = (bInfo->leds >> 4) & 7;
+    int key_shift = 0,key_leds = (bInfo->leds >> 4) & 7;
     
     struct FIFO32 keycmd;
     int keycmd_wait = -1;
@@ -162,6 +168,11 @@ void HariMain(){
             i = fifo32_get(&fifo);
             io_sti();
             
+            if (key_win->flags == 0) {
+                key_win = shtctl->sheets[shtctl->top-1];
+                cursor_c = keywin_on(key_win, sht_win, cursor_c);
+            }
+            
             if (256 <= i && i <= 511) {
                 i-=256;
                 
@@ -186,17 +197,19 @@ void HariMain(){
                 }
                 
                 if (s[0]!=0) {
-                    if (key_to==0) {
-                        s[1] = 0;
-                        putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_RED, COL8_YELLOW, s, 1);
-                        cursor_x+=8;
+                    if (key_win==sht_win) {
+                        if (cursor_x<128) {
+                            s[1] = 0;
+                            putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_000000, COL8_FFFFFF, s, 1);
+                            cursor_x+=8;
+                        }
                     }else{
-                        fifo32_put(&task_cons->fifo, s[0]+256);
+                        fifo32_put(&key_win->task->fifo, s[0]+256);
                     }
                 }
                 
                 if (i==0xe) { //退格
-                    if (key_to==0) {
+                    if (key_win==sht_win) {
                         if (cursor_x > 8) {
                             putfonts8_asc_sht(sht_win, cursor_x, 30, COL8_WHITE, COL8_WHITE, " ", 1);
                             cursor_x -= 8;
@@ -206,23 +219,13 @@ void HariMain(){
                     }
                     
                 }else if(i==0xf){//tab
-                    if (key_to==0) {
-                        key_to = 1;
-                        make_wtitle8(buf_win, sht_win->bxsize, "task_a", 0);
-                        make_wtitle8(buf_cons, sht_cons->bxsize, "console", 1);
-                        cursor_c = -1;
-                        boxfill8(buf_win, sht_win->bxsize, COL8_WHITE, cursor_x, 30, cursor_x+7, 45);
-                        fifo32_put(&task_cons->fifo, 2);
-                    }else{
-                        key_to = 0;
-                        make_wtitle8(buf_win, sht_win->bxsize, "task_a", 1);
-                        make_wtitle8(buf_cons, sht_cons->bxsize, "console", 0);
-                        cursor_c = COL8_BLACK;
-                        fifo32_put(&task_cons->fifo, 3);
+                    cursor_c = keywin_off(key_win,sht_win,cursor_c,cursor_x);
+                    j = key_win->height-1;
+                    if (j==0) {
+                        j = shtctl->top-1;
                     }
-                    
-                    sheet_refresh(sht_win, 0, 0, sht_win->bxsize, 21);
-                    sheet_refresh(sht_cons, 0, 0, sht_cons->bxsize, 21);
+                    key_win = shtctl->sheets[j];
+                    cursor_c = keywin_on(key_win,sht_win,cursor_c);
                 }else if(i==0x2a){//左shift on
                     key_shift |= 1;
                 }else if(i==0x36){
@@ -249,7 +252,7 @@ void HariMain(){
                     wait_KBC_sendready();
                     io_out8(PORT_KEYDAT, keycmd_wait);
                 }else if(i==0x1c){//回车键
-                    if (key_to!=0) {
+                    if (key_win!=sht_win) {
                         fifo32_put(&task_cons->fifo, 10+256);
                     }
                 }else if(i==0x3b && key_shift != 0 && task_cons->tss.ss0 != 0) {//shift+f1 强制结束
@@ -326,12 +329,14 @@ void HariMain(){
                                         if (sht->bxsize-21<=x&&x<sht->bxsize-5&&
                                             5<=y && y<19) {
                                             //点击了x按钮
-                                            struct CONSOLE *cons = (struct CONSOLE *)*((int *)0xfec);
-                                            cons_putstr0(cons, "\nBreak(mouse):\n");
-                                            io_cli();
-                                            task_cons->tss.eax = (int)&(task_cons->tss.esp0);
-                                            task_cons->tss.eip = (int)asm_end_app;
-                                            io_sti();
+                                            if ((sht->flags&0x10)!=0) {
+                                                struct CONSOLE *cons = (struct CONSOLE *)*((int *)0xfec);
+                                                cons_putstr0(cons, "\nBreak(mouse):\n");
+                                                io_cli();
+                                                task_cons->tss.eax = (int)&(task_cons->tss.esp0);
+                                                task_cons->tss.eip = (int)asm_end_app;
+                                                io_sti();
+                                            }
                                         }
                                         break;
                                     }
@@ -372,3 +377,61 @@ void HariMain(){
     
     
 }
+
+int keywin_off(struct SHEET *key_win, struct SHEET *sht_win, int cur_c, int cur_x)
+{
+    change_wtitle8(key_win, 0);
+    if (key_win == sht_win) {
+        cur_c = -1; /* カーソルを消す */
+        boxfill8(sht_win->buf, sht_win->bxsize, COL8_FFFFFF, cur_x, 28, cur_x + 7, 43);
+    } else {
+        if ((key_win->flags & 0x20) != 0) {
+            fifo32_put(&key_win->task->fifo, 3); /* コンソールのカーソルOFF */
+        }
+    }
+    return cur_c;
+}
+
+int keywin_on(struct SHEET *key_win, struct SHEET *sht_win, int cur_c)
+{
+    change_wtitle8(key_win, 1);
+    if (key_win == sht_win) {
+        cur_c = COL8_000000; /* カーソルを出す */
+    } else {
+        if ((key_win->flags & 0x20) != 0) {
+            fifo32_put(&key_win->task->fifo, 2); /* コンソールのカーソルON */
+        }
+    }
+    return cur_c;
+}
+
+void change_wtitle8(struct SHEET *sht, char act)
+{
+    int x, y, xsize = sht->bxsize;
+    char c, tc_new, tbc_new, tc_old, tbc_old, *buf = sht->buf;
+    if (act != 0) {
+        tc_new  = COL8_FFFFFF;
+        tbc_new = COL8_000084;
+        tc_old  = COL8_C6C6C6;
+        tbc_old = COL8_848484;
+    } else {
+        tc_new  = COL8_C6C6C6;
+        tbc_new = COL8_848484;
+        tc_old  = COL8_FFFFFF;
+        tbc_old = COL8_000084;
+    }
+    for (y = 3; y <= 20; y++) {
+        for (x = 3; x <= xsize - 4; x++) {
+            c = buf[y * xsize + x];
+            if (c == tc_old && x <= xsize - 22) {
+                c = tc_new;
+            } else if (c == tbc_old) {
+                c = tbc_new;
+            }
+            buf[y * xsize + x] = c;
+        }
+    }
+    sheet_refresh(sht, 3, 3, xsize, 21);
+    return;
+}
+
