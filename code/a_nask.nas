@@ -4,7 +4,8 @@
 [FILE "a_nask.nas"]
 
     GLOBAL _api_putchar,_api_end,_api_putstr0,_api_openwin,_api_putstrwin,_api_boxfilwin
-    GLOBAL _api_initmalloc,_api_malloc,_api_free,_api_point,_api_refreshwin
+    GLOBAL _api_initmalloc,_api_malloc,_api_free,_api_point,_api_refreshwin,_api_linewin
+    GLOBAL _api_closewin,_api_getkey
     
 [SECTION .text]
 
@@ -152,5 +153,43 @@ _api_refreshwin:
     pop ebx
     pop esi
     pop edi
+    
+    ret
+
+_api_linewin:
+    push edi
+    push esi
+    push ebp
+    push ebx
+    mov edx,13
+    mov ebx,[esp+20]
+    mov eax,[esp+24]
+    mov ecx,[esp+28]
+    mov esi,[esp+32]
+    mov edi,[esp+36]
+    mov ebp,[esp+40]
+    
+    int 0x40
+    
+    pop ebx
+    pop ebp
+    pop esi
+    pop edi
+    
+    ret
+    
+_api_closewin:
+    push ebx
+    mov edx,14
+    mov ebx,[esp+8]
+    int 0x40
+    pop ebx
+    
+    ret
+
+_api_getkey:
+    mov edx,15
+    mov eax,[esp+4]
+    int 0x40
     
     ret

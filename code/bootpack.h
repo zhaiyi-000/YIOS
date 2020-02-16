@@ -325,6 +325,7 @@ void file_loadfile(int clustno, int size, char *buf, int *fat, char *img);
 struct CONSOLE {
     struct SHEET *sht;
     int cur_x, cur_y, cur_c;
+    struct TIMER *timer;
 };
 
 void cons_newline(struct CONSOLE *cons);
