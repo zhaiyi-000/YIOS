@@ -76,7 +76,7 @@ hello3.bim : hello3.obj a_nask.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:hello3.bim stack:2k map:hello3.map hello3.obj a_nask.obj
 	
 hello3.hrb : hello3.bim Makefile
-	$(BIM2HRB) hello3.bim hello3.hrb 0
+	$(BIM2HRB) hello3.bim hello3.hrb 40k
 	
 crack1.bim : crack1.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:crack1.bim map:crack1.map crack1.obj a_nask.obj
@@ -101,14 +101,14 @@ haribote.img : ipl10.bin haribote.sys Makefile \
 
 # ƒRƒ}ƒ“ƒh
 
-c:
-	xcopy "z:\YIOS\code" "c:\Users\sg\Desktop\YIOS\code" /e/i/h/y
-	xcopy "c:\Users\sg\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
+cp:
+	xcopy "Z:\desktop\YIOS_xcode\YIOS\code" "C:\Users\zhaiyi\Desktop\YIOS\code" /e/i/h/y
+	xcopy "c:\Users\zhaiyi\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
 
 img :
-	xcopy "z:\YIOS\code" "c:\Users\sg\Desktop\YIOS\code" /e/i/h/y
+	xcopy "Z:\desktop\YIOS_xcode\YIOS\code" "C:\Users\zhaiyi\Desktop\YIOS\code" /e/i/h/y
 	$(MAKE) haribote.img
-	xcopy "c:\Users\sg\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
+	xcopy "c:\Users\zhaiyi\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
 
 run :
 	$(MAKE) img

@@ -249,7 +249,7 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline) {
             *((int *) 0xfe8) = (int)q;
             
             set_segmdesc(gdt + 1003, finfo->size - 1, (int) p, AR_CODE32_ER+0x60);//p443
-            set_segmdesc(gdt + 1004, 64*1024 - 1, (int) q, AR_DATA32_RW+0x60);
+            set_segmdesc(gdt + 1004, segsiz - 1, (int) q, AR_DATA32_RW+0x60);
             
             for (i = 0; i < datsiz; i++) {
                 q[esp+i] = p[dathrb+i];
@@ -328,6 +328,16 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
         sht = (struct SHEET *)ebx;
         boxfill8(sht->buf, sht->bxsize, ebp, eax, ecx, esi,edi);
         sheet_refresh(sht, eax, ecx, esi+1, edi+1);
+    }else if(edx ==8){
+        memman_init((struct MEMMAN *)(ebx+ds_base));
+        ecx &= 0xfffffff0;
+        memman_free((struct MEMMAN *)(ebx+ds_base), eax, ecx);
+    }else if(edx ==9){
+        ecx = (ecx+0x0f)&0xfffffff0;
+        reg[7] = memman_alloc((struct MEMMAN *)(ebx+ds_base), ecx);
+    }else if(edx ==10){
+        ecx = (ecx+0xf)&0xfffffff0;
+        memman_free((struct MEMMAN *)(ebx+ds_base), eax, ecx);
     }
     return 0;
 }

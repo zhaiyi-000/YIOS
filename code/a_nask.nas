@@ -4,6 +4,7 @@
 [FILE "a_nask.nas"]
 
     GLOBAL _api_putchar,_api_end,_api_putstr0,_api_openwin,_api_putstrwin,_api_boxfilwin
+    GLOBAL _api_initmalloc,_api_malloc,_api_free
     
 [SECTION .text]
 
@@ -85,4 +86,37 @@ _api_boxfilwin:
     pop esi
     pop edi
 
+    ret
+
+
+_api_initmalloc:  ;void api_initmalloc(void)
+
+    push ebx
+    mov edx,8
+    mov ebx,[cs:0x20]
+    mov eax,ebx
+    add eax,32*1024   ;为memman申请的内存
+    mov ecx,[cs:0x0]
+    sub ecx,eax
+    int 0x40
+    pop ebx
+    ret
+
+_api_malloc:
+    push ebx
+    mov edx,9
+    mov ebx,[cs:0x20]
+    mov ecx,[esp+8]
+    int 0x40
+    pop ebx
+    ret
+    
+_api_free:
+    push ebx
+    mov edx,10
+    mov ebx,[cs:0x20]
+    mov eax,[esP+8]
+    mov ecx,[esp+12]
+    int 0x40
+    pop ebx
     ret
