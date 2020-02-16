@@ -30,6 +30,9 @@ void HariMain(){
         0,   0,   0,   '_', 0,   0,   0,   0,   0,   0,   0,   0,   0,   '|', 0,   0
     };
     
+    int j,x,y,mmx = -1,mmy = -1;
+    struct SHEET *sht = 0; //点击窗口调整图册用
+    
     
     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
     char s[100];
@@ -105,7 +108,7 @@ void HariMain(){
     *((int *) (task_cons->tss.esp + 8)) = (int) memtotal;
     task_run(task_cons, 2, 2); /* level=2, priority=2 */
     sheet_updown(sht_cons, 2);
-    sheet_slide(sht_cons, 32, 200);
+    sheet_slide(sht_cons, 32, 56);
     
     
     
@@ -256,6 +259,8 @@ void HariMain(){
                     task_cons->tss.eax = (int)&(task_cons->tss.esp0);
                     task_cons->tss.eip = (int)asm_end_app;
                     io_sti();
+                }else if(i==0x44 && shtctl->top >2){//f10
+                    sheet_updown(shtctl->sheets[1], shtctl->top-1);
                 }
                 
                 if (cursor_c >=0) {
@@ -304,8 +309,33 @@ void HariMain(){
                     sheet_slide( sht_mouse, mx, my);
                     
                     if ((mdec.btn & 0x01) != 0) {
-                        /* 左ボタンを押していたら、sht_winを動かす */
-                        sheet_slide(sht_win, mx - 80, my - 8);
+//                        /* 左ボタンを押していたら、sht_winを動かす */
+//                        sheet_slide(sht_win, mx - 80, my - 8);
+                        if (mmx<0) {
+                            for (j = shtctl->top-1; j > 0; j--) {
+                                sht = shtctl->sheets[j];
+                                x = mx-sht->vx0;
+                                y = my-sht->vy0;
+                                if (0<=x && x<sht->bxsize && 0<=y && y < sht->bysize) {
+                                    if (sht->buf[y*sht->bxsize+x]!=sht->col_inv) {
+                                        sheet_updown(sht, shtctl->top-1);
+                                        if (3<=x && x < sht->bxsize && 3 <=y && y<21) {
+                                            mmx = mx;
+                                            mmy = my;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }else{
+                            x = mx-mmx;
+                            y = my-mmy;
+                            sheet_slide(sht, sht->vx0+x, sht->vy0+y);
+                            mmx = mx;
+                            mmy = my;
+                        }
+                    }else{
+                        mmx = -1;
                     }
                 }
             }else if(i<=1){
