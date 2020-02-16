@@ -208,6 +208,7 @@ struct SHEET {
     unsigned char *buf;
     struct SHTCTL *ctl;
     int bxsize,bysize,vx0,vy0,col_inv,height,flags;
+    struct TASK *task;
 };
 
 #define MAX_SHEETS 256
