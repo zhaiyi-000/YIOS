@@ -18,6 +18,7 @@ void api_boxfilwin(int win, int x0, int y0, int x1, int y1, int col);
 void api_initmalloc(void);
 char *api_malloc(int size);
 void api_free(char *addr, int size);
+void api_point(int win, int x, int y, int col);
 
 void api_end(void);
 
@@ -37,11 +38,13 @@ void HariMain(void){
     api_putstr0("hello, world\n");
     
     api_initmalloc();
-    char *buf = api_malloc(150*50);
-    int win = api_openwin(buf, 150, 50, -1, "zhello");
-    api_boxfilwin(win, 8, 36, 141, 43 ,3);
-    api_putstrwin(win, 28, 28, 0,12, "hello,wolaile~~~");
-    api_free(buf,150*50);
+    char *buf = api_malloc(150*100);
+    int win = api_openwin(buf, 150, 100, -1, "zhello");
+    api_boxfilwin(win, 6, 26, 141, 93 ,0);
+//    api_putstrwin(win, 28, 28, 0,12, "hello,wolaile~~~");
+    api_free(buf,150*100);
+    
+    api_point(win,75,59,3);
     
     api_end();
 }
