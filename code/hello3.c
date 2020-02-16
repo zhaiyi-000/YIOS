@@ -19,6 +19,7 @@ void api_initmalloc(void);
 char *api_malloc(int size);
 void api_free(char *addr, int size);
 void api_point(int win, int x, int y, int col);
+void api_refreshwin(int win, int x0, int y0, int x1, int y1);
 
 void api_end(void);
 
@@ -44,7 +45,8 @@ void HariMain(void){
 //    api_putstrwin(win, 28, 28, 0,12, "hello,wolaile~~~");
     api_free(buf,150*100);
     
-    api_point(win,75,59,3);
+    api_point(win+1,75,59,3);
+    api_refreshwin(win, 6, 26, 144, 94);
     
     api_end();
 }

@@ -4,7 +4,7 @@
 [FILE "a_nask.nas"]
 
     GLOBAL _api_putchar,_api_end,_api_putstr0,_api_openwin,_api_putstrwin,_api_boxfilwin
-    GLOBAL _api_initmalloc,_api_malloc,_api_free,_api_point
+    GLOBAL _api_initmalloc,_api_malloc,_api_free,_api_point,_api_refreshwin
     
 [SECTION .text]
 
@@ -130,6 +130,24 @@ _api_point:
     mov esi,[esp+20]
     mov edi,[esp+24]
     mov eax,[esp+28]
+    int 0x40
+    pop ebx
+    pop esi
+    pop edi
+    
+    ret
+
+
+_api_refreshwin:
+    push edi
+    push esi
+    push ebx
+    mov edx,12
+    mov ebx,[esp+16]
+    mov eax,[esp+20]
+    mov ecx,[esp+24]
+    mov esi,[esp+28]
+    mov edi,[esp+32]
     int 0x40
     pop ebx
     pop esi
