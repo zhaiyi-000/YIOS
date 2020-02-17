@@ -36,7 +36,7 @@ void HariMain(){
     
     int j,x,y,mmx = -1,mmy = -1;
     struct SHEET *sht = 0,*key_win; //点击窗口调整图册用
-    
+    int i;
     
     struct BOOTINFO *bInfo = (struct BOOTINFO *)ADR_BOOTINFO;
     char s[100];
@@ -94,29 +94,36 @@ void HariMain(){
     task_run(task_a, 1,0);
     
     /* sht_cons */
-    struct SHEET *sht_cons = sheet_alloc(shtctl);
-    unsigned char *buf_cons = (unsigned char *) memman_alloc_4k(memman, 256 * 165);
-    sheet_setbuf(sht_cons, buf_cons, 256, 165, -1); /* 透明色なし */
-    make_window8(buf_cons, 256, 165, "console", 0);
-    make_textbox8(sht_cons, 8, 28, 240, 128, COL8_000000);
-    struct TASK *task_cons = task_alloc();
-    task_cons->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 12;
-    task_cons->tss.eip = (int)console_task;
-    task_cons->tss.es = 1 * 8;
-    task_cons->tss.cs = 2 * 8;
-    task_cons->tss.ss = 1 * 8;
-    task_cons->tss.ds = 1 * 8;
-    task_cons->tss.fs = 1 * 8;
-    task_cons->tss.gs = 1 * 8;
-    *((int *) (task_cons->tss.esp + 4)) = (int) sht_cons;
-    *((int *) (task_cons->tss.esp + 8)) = (int) memtotal;
-    task_run(task_cons, 2, 2); /* level=2, priority=2 */
-    sheet_updown(sht_cons, 2);
-    sheet_slide(sht_cons, 32, 200);
+    struct SHEET *sht_cons[2];
+    unsigned char *buf_cons[2];
+    struct TASK *task_cons[2];
+    for (i = 0; i < 2; i++) {
+        sht_cons[i] = sheet_alloc(shtctl);
+        buf_cons[i] = (unsigned char *) memman_alloc_4k(memman, 256 * 165);
+        sheet_setbuf(sht_cons[i], buf_cons[i], 256, 165, -1); /* 透明色なし */
+        make_window8(buf_cons[i], 256, 165, "console", 0);
+        make_textbox8(sht_cons[i], 8, 28, 240, 128, COL8_000000);
+        task_cons[i] = task_alloc();
+        task_cons[i]->tss.esp = memman_alloc_4k(memman, 64 * 1024) + 64 * 1024 - 12;
+        task_cons[i]->tss.eip = (int)console_task;
+        task_cons[i]->tss.es = 1 * 8;
+        task_cons[i]->tss.cs = 2 * 8;
+        task_cons[i]->tss.ss = 1 * 8;
+        task_cons[i]->tss.ds = 1 * 8;
+        task_cons[i]->tss.fs = 1 * 8;
+        task_cons[i]->tss.gs = 1 * 8;
+        *((int *) (task_cons[i]->tss.esp + 4)) = (int) sht_cons[i];
+        *((int *) (task_cons[i]->tss.esp + 8)) = (int) memtotal;
+        task_run(task_cons[i], 2, 2); /* level=2, priority=2 */
+        sht_cons[i]->task = task_cons[i];
+        sht_cons[i]->flags |= 0x20;
+    }
     
     key_win = sht_win;
-    sht_cons->task = task_cons;
-    sht_cons->flags |= 0x20;
+    sheet_updown(sht_cons[0], 2);
+    sheet_updown(sht_cons[1], 3);
+    sheet_slide(sht_cons[0], 8, 2);
+    sheet_slide(sht_cons[1], 56, 6);
     
     //用于显示闪烁的光标
     struct TIMER *timer = timer_alloc();
@@ -150,7 +157,6 @@ void HariMain(){
     fifo32_put(&keycmd, key_leds);
     
     int cursor_x = 8,cursor_c = COL8_FFFFFF;
-    int i;
 	for(;;){
         if (fifo32_status(&keycmd) > 0 && keycmd_wait<0) {
             keycmd_wait = fifo32_get(&keycmd);
@@ -215,7 +221,7 @@ void HariMain(){
                             cursor_x -= 8;
                         }
                     }else{
-                        fifo32_put(&task_cons->fifo, 8+256);
+                        fifo32_put(&task_cons[0]->fifo, 8+256);
                     }
                     
                 }else if(i==0xf){//tab
@@ -253,14 +259,14 @@ void HariMain(){
                     io_out8(PORT_KEYDAT, keycmd_wait);
                 }else if(i==0x1c){//回车键
                     if (key_win!=sht_win) {
-                        fifo32_put(&task_cons->fifo, 10+256);
+                        fifo32_put(&key_win->task->fifo, 10+256);
                     }
-                }else if(i==0x3b && key_shift != 0 && task_cons->tss.ss0 != 0) {//shift+f1 强制结束
+                }else if(i==0x3b && key_shift != 0 && task_cons[0]->tss.ss0 != 0) {//shift+f1 强制结束
                     struct CONSOLE *cons = (struct CONSOLE *)*((int *)0xfec);
                     cons_putstr0(cons, "\nBreak(key) :\n");
                     io_cli();
-                    task_cons->tss.eax = (int)&(task_cons->tss.esp0);
-                    task_cons->tss.eip = (int)asm_end_app;
+                    task_cons[0]->tss.eax = (int)&(task_cons[0]->tss.esp0);
+                    task_cons[0]->tss.eip = (int)asm_end_app;
                     io_sti();
                 }else if(i==0x44 && shtctl->top >2){//f10
                     sheet_updown(shtctl->sheets[1], shtctl->top-1);
@@ -339,8 +345,8 @@ void HariMain(){
                                                 struct CONSOLE *cons = (struct CONSOLE *)*((int *)0xfec);
                                                 cons_putstr0(cons, "\nBreak(mouse):\n");
                                                 io_cli();
-                                                task_cons->tss.eax = (int)&(task_cons->tss.esp0);
-                                                task_cons->tss.eip = (int)asm_end_app;
+                                                task_cons[0]->tss.eax = (int)&(task_cons[0]->tss.esp0);
+                                                task_cons[0]->tss.eip = (int)asm_end_app;
                                                 io_sti();
                                             }
                                         }
