@@ -439,15 +439,15 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
             io_sti();
             if (i <= 1) { /* カーソル用タイマ */
                 /* アプリ実行中はカーソルが出ないので、いつも次は表示用の1を注文しておく */
-//                timer_init(cons->timer, &task->fifo, 0);  //这个地方写0写1一个样
+                timer_init(cons->timer, &task->fifo, 1);  //这个地方写0写1一个样
                 timer_settime(cons->timer, 50);
             }
-//            if (i == 2) {    //2.3的作用，就是在这个api接管键盘的时候，让 cur_c 保持一致，起不到刷新图册的作用,没什么用吧 ，我可以注释掉。因为如果console_task响应 那么 i必为2
-//                cons->cur_c = COL8_FFFFFF;
-//            }
-//            if (i == 3) {    /* カーソルOFF */
-//                cons->cur_c = -1;
-//            }
+            if (i == 2) {    //2.3的作用，就是在这个api接管键盘的时候，让 cur_c 保持一致，起不到刷新图册的作用,没什么用吧 ，我可以注释掉。因为如果console_task响应 那么 i必为2  注:25.9这个产生了一个bug.前面这句话不对，因为可能是子窗口响应的
+                cons->cur_c = COL8_FFFFFF;
+            }
+            if (i == 3) {    /* カーソルOFF */
+                cons->cur_c = -1;
+            }
             if (256 <= i) { /* キーボードデータ（タスクA経由） */
                 reg[7] = i - 256;
                 return 0;
