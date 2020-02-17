@@ -122,8 +122,8 @@ void HariMain(){
     key_win = sht_win;
     sheet_updown(sht_cons[0], 2);
     sheet_updown(sht_cons[1], 3);
-    sheet_slide(sht_cons[0], 8, 2);
-    sheet_slide(sht_cons[1], 56, 6);
+    sheet_slide(sht_cons[0], 8, 200);
+    sheet_slide(sht_cons[1], 56, 400);
     
     //用于显示闪烁的光标
     struct TIMER *timer = timer_alloc();
@@ -261,13 +261,15 @@ void HariMain(){
                     if (key_win!=sht_win) {
                         fifo32_put(&key_win->task->fifo, 10+256);
                     }
-                }else if(i==0x3b && key_shift != 0 && task_cons[0]->tss.ss0 != 0) {//shift+f1 强制结束
-                    struct CONSOLE *cons = (struct CONSOLE *)*((int *)0xfec);
-                    cons_putstr0(cons, "\nBreak(key) :\n");
-                    io_cli();
-                    task_cons[0]->tss.eax = (int)&(task_cons[0]->tss.esp0);
-                    task_cons[0]->tss.eip = (int)asm_end_app;
-                    io_sti();
+                }else if(i==0x3b && key_shift != 0) {//shift+f1 强制结束
+                    struct TASK *task = key_win->task;
+                    if (task!=0 && task->tss.ss0 !=0) {
+                        cons_putstr0(task->cons, "\nBreak(key) :\n");
+                        io_cli();
+                        task->tss.eax = (int)&(task->tss.esp0);
+                        task->tss.eip = (int)asm_end_app;
+                        io_sti();
+                    }
                 }else if(i==0x44 && shtctl->top >2){//f10
                     sheet_updown(shtctl->sheets[1], shtctl->top-1);
                 }
@@ -342,11 +344,11 @@ void HariMain(){
                                             5<=y && y<19) {
                                             //点击了x按钮
                                             if ((sht->flags&0x10)!=0) {
-                                                struct CONSOLE *cons = (struct CONSOLE *)*((int *)0xfec);
-                                                cons_putstr0(cons, "\nBreak(mouse):\n");
+                                                struct TASK *task = sht->task;
+                                                cons_putstr0(task->cons, "\nBreak(mouse):\n");
                                                 io_cli();
-                                                task_cons[0]->tss.eax = (int)&(task_cons[0]->tss.esp0);
-                                                task_cons[0]->tss.eip = (int)asm_end_app;
+                                                task->tss.eax = (int)&(task->tss.esp0);
+                                                task->tss.eip = (int)asm_end_app;
                                                 io_sti();
                                             }
                                         }
