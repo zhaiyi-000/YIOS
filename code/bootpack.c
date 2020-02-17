@@ -112,7 +112,7 @@ void HariMain(){
     *((int *) (task_cons->tss.esp + 8)) = (int) memtotal;
     task_run(task_cons, 2, 2); /* level=2, priority=2 */
     sheet_updown(sht_cons, 2);
-    sheet_slide(sht_cons, 32, 56);
+    sheet_slide(sht_cons, 32, 200);
     
     key_win = sht_win;
     sht_cons->task = task_cons;
