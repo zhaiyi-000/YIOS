@@ -293,7 +293,7 @@ struct TASKCTL {
     struct TASK task0[MAX_TASKS];
 };
 
-
+extern struct TASKCTL *taskctl;
 
 struct TASK *task_now(void);
 void task_add(struct TASK *task);
@@ -343,3 +343,4 @@ struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max);
 
 
 struct SHEET *open_console(struct SHTCTL *shtctl, unsigned int memtotal);
+struct TASK *open_constask(struct SHEET *sht, unsigned int memtotal);
