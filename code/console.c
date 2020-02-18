@@ -16,8 +16,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
     struct TASK *task = task_now();
     struct FIFO32 *fifo = &task->fifo;
 
-    int i, fifobuf[128];
-    fifo32_init(fifo, 128, fifobuf, task);
+    int i;//, fifobuf[128];
+    //fifo32_init(fifo, 128, fifobuf, task);
     char cmdline[30];
     struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
     
@@ -26,7 +26,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
     file_readfat(fat, (unsigned char *)(ADR_DISKIMG+0x200));
 
     timer = timer_alloc();
-    timer_init(timer, fifo, 1);
+    timer_init(timer, fifo, 0);
     timer_settime(timer, 50);
     
     struct CONSOLE cons;

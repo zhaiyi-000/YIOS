@@ -108,6 +108,9 @@ void HariMain(){
         task_run(task_cons[i], 2, 2); /* level=2, priority=2 */
         sht_cons[i]->task = task_cons[i];
         sht_cons[i]->flags |= 0x20;
+        
+        int fifobuf[128];
+        fifo32_init(&task_cons[i]->fifo, 128, fifobuf, task_cons[i]);
     }
     
     key_win = sht_cons[0];
