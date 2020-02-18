@@ -212,6 +212,7 @@ void HariMain(){
                         task->tss.eax = (int)&(task->tss.esp0);
                         task->tss.eip = (int)asm_end_app;
                         io_sti();
+                        task_run(task, -1, 0);
                     }
                 }else if(i==0x44 && shtctl->top >2){//f10 // 调整图册
                     sheet_updown(shtctl->sheets[1], shtctl->top-1);
@@ -296,6 +297,7 @@ void HariMain(){
                                                 task->tss.eax = (int)&(task->tss.esp0);
                                                 task->tss.eip = (int)asm_end_app;
                                                 io_sti();
+                                                task_run(task, -1, 0);
                                             }else{
                                                 struct TASK *task = sht->task;
                                                 io_cli();
