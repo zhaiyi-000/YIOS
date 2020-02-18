@@ -86,16 +86,10 @@ void HariMain(){
     task_run(task_a, 1,0);
     
     /* sht_cons */
-    struct SHEET *sht_cons[2];
-    sht_cons[0] = open_console(shtctl, memtotal);
-    sht_cons[1] = 0;
-    
-    key_win = sht_cons[0];
+    key_win = open_console(shtctl, memtotal);
     keywin_on(key_win);
-    sheet_updown(sht_cons[0], 1);
-    //sheet_updown(sht_cons[1], 2);
-    sheet_slide(sht_cons[0], 8, 200);
-    //sheet_slide(sht_cons[1], 56, 400);
+    sheet_updown(key_win, 1);
+    sheet_slide(key_win, 8, 200);
     
     
     //打开部分中断
@@ -215,12 +209,11 @@ void HariMain(){
                     }
                 }else if(i==0x44 && shtctl->top >2){//f10 // 调整图册
                     sheet_updown(shtctl->sheets[1], shtctl->top-1);
-                }else if(i==0x58 && key_shift!=0 && sht_cons[1]==0){//新建console
-                    sht_cons[1] = open_console(shtctl, memtotal);
-                    sheet_slide(sht_cons[1], 32, 400);
-                    sheet_updown(sht_cons[1], shtctl->top);
+                }else if(i==0x58 && key_shift!=0) {//新建console
                     keywin_off(key_win);
-                    key_win = sht_cons[1];
+                    key_win = open_console(shtctl, memtotal);
+                    sheet_slide(key_win, 32, 400);
+                    sheet_updown(key_win, shtctl->top);
                     keywin_on(key_win);
                 }
                 
