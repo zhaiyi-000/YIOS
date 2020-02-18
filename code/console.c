@@ -27,12 +27,6 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
     //2880*1.5=4320个字节,9个扇区9*512=4608>4320
     file_readfat(fat, (unsigned char *)(ADR_DISKIMG+0x200));
 
-    if (sheet!=0) {
-        timer = timer_alloc();
-        timer_init(timer, fifo, 0);
-        timer_settime(timer, 50);
-    }
-    
     struct CONSOLE cons;
     cons.sht = sheet;
     cons.cur_x = 8;
@@ -40,6 +34,12 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
     cons.cur_c = -1;
     cons.timer = timer;
     task->cons = &cons;
+    
+    if (cons.sht!=0) {
+        timer = timer_alloc();
+        timer_init(timer, fifo, 0);
+        timer_settime(timer, 50);
+    }
     
     cons_putchar(&cons,'>',1);
 
@@ -51,7 +51,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
         } else {
             i = fifo32_get(fifo);
             io_sti();
-            if (i <= 1) { /* カーソル用タイマ */
+            if (i <= 1 && cons.sht != 0) { /* カーソル用タイマ */
                 if (i != 0) {
                     timer_init(timer, fifo, 0); /* 次は0を */
                     if (cons.cur_c >= 0) {
@@ -67,7 +67,9 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
             }else if (i == 2) { //显示光标
                 cons.cur_c = COL8_WHITE;
             }else if (i ==3) { //不显示光标
-                boxfill8(sheet->buf, sheet->bxsize, COL8_BLACK, cons.cur_x, cons.cur_y, cons.cur_x+7, 43);
+                if (cons.sht != 0) {
+                    boxfill8(cons.sht->buf, cons.sht->bxsize, COL8_BLACK, cons.cur_x, cons.cur_y, cons.cur_x+7, 43);
+                }
                 cons.cur_c = -1;
             }else if (i ==4) { //点击了关闭按钮
                 cmd_exit(&cons, fat);
@@ -83,7 +85,7 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
                     cmdline[cons.cur_x/8-2] = 0;
                     cons_newline(&cons);
                     cons_runcmd(cmdline, &cons, fat, memtotal);
-                    if (sheet==0) {
+                    if (cons.sht==0) {
                         cmd_exit(&cons, fat);
                     }
                     cons_putchar(&cons, '>', 1);
@@ -95,11 +97,11 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
                 }
             }
             
-            if (sheet!=0) {
+            if (cons.sht!=0) {
                 if (cons.cur_c >= 0) {
-                    boxfill8(sheet->buf, sheet->bxsize, cons.cur_c, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y+15);
+                    boxfill8(cons.sht->buf, cons.sht->bxsize, cons.cur_c, cons.cur_x, cons.cur_y, cons.cur_x + 7, cons.cur_y+15);
                 }
-                sheet_refresh(sheet, cons.cur_x, cons.cur_y, cons.cur_x + 8, cons.cur_y+16);
+                sheet_refresh(cons.sht, cons.cur_x, cons.cur_y, cons.cur_x + 8, cons.cur_y+16);
             }
         }
     }
@@ -407,6 +409,7 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     int ds_base = task->ds_base;
     struct CONSOLE *cons = task->cons;
     struct SHTCTL *shtctl = (struct SHTCTL *)*((int *)0xfe4);
+    struct FIFO32 *sys_fifo = (struct FIFO32 *)*((int *)0xfec);
     struct SHEET *sht;
     int *reg = &eax+1; //强行改先pushad的eax
     int i;
@@ -491,6 +494,13 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
             }
             if (i == 3) {    /* カーソルOFF */
                 cons->cur_c = -1;
+            }
+            if (i==4) {
+                timer_cancel(cons->timer);
+                io_cli();
+                fifo32_put(sys_fifo, cons->sht-shtctl->sheets0+2024);
+                cons->sht = 0;
+                io_sti();
             }
             if (256 <= i) { /* キーボードデータ（タスクA経由） */
                 reg[7] = i - 256;
