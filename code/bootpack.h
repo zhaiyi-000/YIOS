@@ -340,3 +340,6 @@ void cons_putstr0(struct CONSOLE *cons, char *s);
 void cons_putstr1(struct CONSOLE *cons, char *s,int l);
 void console_task(struct SHEET *sheet, unsigned int memtotal);
 struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max);
+
+
+struct SHEET *open_console(struct SHTCTL *shtctl, unsigned int memtotal);
