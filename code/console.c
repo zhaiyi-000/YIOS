@@ -9,7 +9,7 @@
 #include "bootpack.h"
 
 
-
+void cmd_exit(struct CONSOLE *cons, int *fat);
 
 void console_task(struct SHEET *sheet, unsigned int memtotal) {
     struct TIMER *timer;
@@ -65,6 +65,8 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
             }else if (i ==3) { //不显示光标
                 boxfill8(sheet->buf, sheet->bxsize, COL8_BLACK, cons.cur_x, cons.cur_y, cons.cur_x+7, 43);
                 cons.cur_c = -1;
+            }else if (i ==4) { //点击了关闭按钮
+                cmd_exit(&cons, fat);
             }else if (256 <= i && i <=511) {
                 i-=256;
                 if (i==8) {
