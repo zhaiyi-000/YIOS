@@ -249,17 +249,24 @@ void sheet_refreshmap(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1, in
             by1 = sht->bysize;
         }
         
-        for (by = by0; by < by1; by++) {
-            vy = sht->vy0+by;
-            
-            for (bx = bx0; bx < bx1; bx++) {
-                vx = sht->vx0+bx;
-                
-                c = buf[by*sht->bxsize+bx];
-                if (c != sht->col_inv) {
+        if (sht->col_inv==-1) {
+            for (by = by0; by < by1; by++) {
+                vy = sht->vy0+by;
+                for (bx = bx0; bx < bx1; bx++) {
+                    vx = sht->vx0+bx;
                     ctl->map[vy*ctl->xsize+vx] = sid;  //这个地方出了一个bug
                 }
-                
+            }
+        }else{
+            for (by = by0; by < by1; by++) {
+                vy = sht->vy0+by;
+                for (bx = bx0; bx < bx1; bx++) {
+                    vx = sht->vx0+bx;
+                    c = buf[by*sht->bxsize+bx];
+                    if (c != sht->col_inv) {
+                        ctl->map[vy*ctl->xsize+vx] = sid;  //这个地方出了一个bug
+                    }
+                }
             }
         }
     }
