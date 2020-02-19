@@ -232,3 +232,8 @@ _api_beep:            ; void api_beep(int tone);
     MOV        EAX,[ESP+4]            ; tone
     INT        0x40
     RET
+
+_alloca:
+    add eax,-4
+    sub esp,eax
+    jmp dword [esp+eax]

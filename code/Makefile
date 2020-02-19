@@ -17,96 +17,56 @@ IMGTOL   = $(TOOLPATH)imgtol.com
 COPY     = copy
 DEL      = del
 
-# デフォルト動作
-
 default :
 	$(MAKE) img
 
-# ファイル生成規則
-
 %.gas : %.c Makefile
 	$(CC1) -o $*.gas $*.c
-
 %.nas : %.gas Makefile
 	$(GAS2NASK) $*.gas $*.nas
-
 %.obj : %.nas Makefile
 	$(NASK) $*.nas $*.obj $*.lst
 
 ipl10.bin : ipl10.nas Makefile
 	$(NASK) ipl10.nas ipl10.bin ipl10.lst
-
 asmhead.bin : asmhead.nas Makefile
 	$(NASK) asmhead.nas asmhead.bin asmhead.lst
 
 hankaku.bin : hankaku.txt Makefile
 	$(MAKEFONT) hankaku.txt hankaku.bin
-
 hankaku.obj : hankaku.bin Makefile
 	$(BIN2OBJ) hankaku.bin hankaku.obj _hankaku
 
 bootpack.bim : $(OBJS_BOOTPACK) Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:bootpack.bim stack:3136k map:bootpack.map \
 		$(OBJS_BOOTPACK)
-# 3MB+64KB=3136KB
-
 bootpack.hrb : bootpack.bim Makefile
 	$(BIM2HRB) bootpack.bim bootpack.hrb 0
-	
-hello.hrb : hello.nas Makefile
-	$(NASK) hello.nas hello.hrb hello.lst
-	
-
-crack2.hrb : crack2.nas Makefile
-	$(NASK) crack2.nas crack2.hrb crack2.lst
-	
-hello2.hrb : hello2.nas Makefile
-	$(NASK) hello2.nas hello2.hrb hello2.lst
-
 haribote.sys : asmhead.bin bootpack.hrb Makefile
 	copy /B asmhead.bin+bootpack.hrb haribote.sys
-	
-a.bim : a.obj a_nask.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:a.bim map:a.map a.obj a_nask.obj
-	
-a.hrb : a.bim Makefile
-	$(BIM2HRB) a.bim a.hrb 0
-	
-hello3.bim : hello3.obj a_nask.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:hello3.bim stack:2k map:hello3.map hello3.obj a_nask.obj
-	
-hello3.hrb : hello3.bim Makefile
-	$(BIM2HRB) hello3.bim hello3.hrb 100k
-	
-crack1.bim : crack1.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:crack1.bim map:crack1.map crack1.obj a_nask.obj
-	
-crack1.hrb : crack1.bim Makefile
-	$(BIM2HRB) crack1.bim crack1.hrb 0
 
 haribote.img : ipl10.bin haribote.sys Makefile \
-		hello.hrb hello2.hrb a.hrb hello3.hrb crack1.hrb crack2.hrb
+		hrb/hello.hrb hrb/hello2.hrb hrb/a.hrb hrb/color2.hrb hrb/crack1.hrb hrb/crack2.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:haribote.sys to:@: \
 		copy from:ipl10.nas to:@: \
 		copy from:make.bat to:@: \
-		copy from:hello.hrb to:@: \
-		copy from:hello2.hrb to:@: \
-		copy from:a.hrb to:@: \
-		copy from:hello3.hrb to:@: \
-		copy from:crack1.hrb to:@: \
-		copy from:crack2.hrb to:@: \
+		copy from:hrb/hello.hrb to:@: \
+		copy from:hrb/hello2.hrb to:@: \
+		copy from:hrb/a.hrb to:@: \
+		copy from:hrb/color2.hrb to:@: \
+		copy from:hrb/crack1.hrb to:@: \
+		copy from:hrb/crack2.hrb to:@: \
 		imgout:haribote.img
 
-# コマンド
-
-cp:
+cp :
 	xcopy "Z:\desktop\YIOS_xcode\YIOS\code" "C:\Users\zhaiyi\Desktop\YIOS\code" /e/i/h/y
 	xcopy "c:\Users\zhaiyi\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
 
 img :
 	xcopy "Z:\desktop\YIOS_xcode\YIOS\code" "C:\Users\zhaiyi\Desktop\YIOS\code" /e/i/h/y
+	$(MAKE) -C hrb
 	$(MAKE) haribote.img
 	xcopy "c:\Users\zhaiyi\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
 
@@ -128,6 +88,7 @@ clean :
 	-$(DEL) *.bim
 	-$(DEL) *.hrb
 	-$(DEL) haribote.sys
+	$(MAKE) -C hrb clean
 
 src_only :
 	$(MAKE) clean
