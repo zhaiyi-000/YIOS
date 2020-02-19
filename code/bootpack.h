@@ -72,7 +72,7 @@ void boxfill8(unsigned char *vram,int xsize,int c,int x0,int y0,int x1,int y1); 
 void init_mouse_cursor8(char *mouse,int bc);
 void putblock8_8(unsigned char *vram,int vxsize,int pxsize,int pysize,
     int px0,int py0,char *buf,int bxsize);  //把鼠标的buff写到显存中
-void putfonts8_asc(unsigned char *vram, int xsize, int x, int  y, int c, char *s); //显示字符串
+void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s); //显示字符串
 
 
 // naskfunc.nas
@@ -283,6 +283,7 @@ struct TASK {
     struct FILEHANDLE *fhandle;
     int *fat;
     char *cmdline;
+    char langmode;
 };
 
 struct FILEHANDLE {

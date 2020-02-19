@@ -24,6 +24,7 @@ default :
 	$(MAKE) color2.hrb
 	$(MAKE) crack1.hrb
 	$(MAKE) type.hrb
+	$(MAKE) iroha.hrb
 
 
 %.gas : %.c ../apilib.h Makefile
@@ -64,6 +65,12 @@ type.bim : type.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:type.bim map:type.map type.obj a_nask.obj
 type.hrb : type.bim Makefile
 	$(BIM2HRB) type.bim type.hrb 0
+	
+	
+iroha.bim : iroha.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:iroha.bim map:iroha.map iroha.obj a_nask.obj
+iroha.hrb : iroha.bim Makefile
+	$(BIM2HRB) iroha.bim iroha.hrb 0
 	
 	
 
