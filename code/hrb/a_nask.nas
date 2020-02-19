@@ -6,7 +6,7 @@
     GLOBAL _api_putchar,_api_end,_api_putstr0,_api_openwin,_api_putstrwin,_api_boxfilwin
     GLOBAL _api_initmalloc,_api_malloc,_api_free,_api_point,_api_refreshwin,_api_linewin
     GLOBAL _api_closewin,_api_getkey,_api_alloctimer,_api_inittimer,_api_settimer,_api_freetimer
-    GLOBAL _api_beep,_api_fopen,_api_fclose,_api_fseek,_api_fsize,_api_fread
+    GLOBAL _api_beep,_api_fopen,_api_fclose,_api_fseek,_api_fsize,_api_fread,_api_cmdline
     
 [SECTION .text]
 
@@ -281,3 +281,12 @@ _api_fread:            ; int api_fread(char *buf, int maxsize, int fhandle);
     INT        0x40
     POP        EBX
     RET
+
+_api_cmdline:
+    push ebx
+    mov edx,26
+    mov ecx,[esp+12]
+    mov ebx,[esp+8]
+    int 0x40
+    pop ebx
+    ret

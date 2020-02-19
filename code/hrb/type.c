@@ -3,8 +3,13 @@
 void HariMain(void)
 {
 	int fh;
-	char c;
-	fh = api_fopen("ipl10.nas");
+	char c,cmdline[30],*p;
+    
+    api_cmdline(cmdline, 30);
+    for (p = cmdline; *p > ' '; p++) {}
+    for (; *p == ' '; p++) {}
+    
+	fh = api_fopen(p);
 	if (fh != 0) {
 		for (;;) {
 			if (api_fread(&c, 1, fh) == 0) {

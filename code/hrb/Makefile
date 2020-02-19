@@ -23,7 +23,7 @@ default :
 	$(MAKE) a.hrb
 	$(MAKE) color2.hrb
 	$(MAKE) crack1.hrb
-	$(MAKE) typeipl.hrb
+	$(MAKE) type.hrb
 
 
 %.gas : %.c ../apilib.h Makefile
@@ -60,10 +60,10 @@ crack1.bim : crack1.obj Makefile
 crack1.hrb : crack1.bim Makefile
 	$(BIM2HRB) crack1.bim crack1.hrb 0
 	
-typeipl.bim : typeipl.obj Makefile
-	$(OBJ2BIM) @$(RULEFILE) out:typeipl.bim map:typeipl.map typeipl.obj a_nask.obj
-typeipl.hrb : typeipl.bim Makefile
-	$(BIM2HRB) typeipl.bim typeipl.hrb 0
+type.bim : type.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:type.bim map:type.map type.obj a_nask.obj
+type.hrb : type.bim Makefile
+	$(BIM2HRB) type.bim type.hrb 0
 	
 	
 
