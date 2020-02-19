@@ -42,6 +42,14 @@ void console_task(struct SHEET *sheet, unsigned int memtotal) {
     }
     
     cons_putchar(&cons,'>',1);
+    
+    //文件handle
+    struct FILEHANDLE fhandle[8];
+    for (i = 0; i < 8; i++) {
+        fhandle[i].buf = 0; //未使用标记
+    }
+    task->fhandle = fhandle;
+    task->fat = fat;
 
     for (;;) {
         io_cli();
@@ -285,6 +293,13 @@ int cmd_app(struct CONSOLE *cons, int *fat, char *cmdline) {
                 }
             }
             
+            for (i = 0; i < 8; i++) {
+                if (task->fhandle[i].buf != 0) {
+                    memman_free_4k(memman, (int)task->fhandle[i].buf, task->fhandle[i].size);
+                    task->fhandle[i].buf = 0;
+                }
+            }
+            
             timer_cancelall(&task->fifo);
             memman_free_4k(memman, (int) q, segsiz);
         }else{
@@ -412,6 +427,9 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     struct SHEET *sht;
     int *reg = &eax+1; //强行改先pushad的eax
     int i;
+    struct FILEINFO *finfo;
+    struct FILEHANDLE *fh;
+    struct MEMMAN *memman = (struct MEMMAN *)MEMMAN_ADDR;
     
     if (edx==1) {
         cons_putchar(cons, eax & 0xff, 1);
@@ -516,18 +534,91 @@ int *hrb_api(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int 
     } else if (edx == 19) {
         timer_free((struct TIMER *) ebx);
     } else if (edx == 20) {
-           if (eax == 0) {
-               i = io_in8(0x61);
-               io_out8(0x61, i & 0x0d);
-           } else {
-               i = 1193180000 / eax;
-               io_out8(0x43, 0xb6);
-               io_out8(0x42, i & 0xff);
-               io_out8(0x42, i >> 8);
-               i = io_in8(0x61);
-               io_out8(0x61, (i | 0x03) & 0x0f);
-           }
-       }
+        if (eax == 0) {
+            i = io_in8(0x61);
+            io_out8(0x61, i & 0x0d);
+        } else {
+            i = 1193180000 / eax;
+            io_out8(0x43, 0xb6);
+            io_out8(0x42, i & 0xff);
+            io_out8(0x42, i >> 8);
+            i = io_in8(0x61);
+            io_out8(0x61, (i | 0x03) & 0x0f);
+        }
+    } else if (edx == 21) {
+        for (i = 0; i < 8; i++) {
+            if (task->fhandle[i].buf == 0) {
+                break;
+            }
+        }
+        fh = &task->fhandle[i];
+        reg[7] = 0;
+        if (i < 8) {
+            finfo = file_search((char *) ebx + ds_base,
+                    (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
+            if (finfo != 0) {
+                reg[7] = (int) fh;
+                fh->buf = (char *) memman_alloc_4k(memman, finfo->size);
+                fh->size = finfo->size;
+                fh->pos = 0;
+                file_loadfile(finfo->clustno, finfo->size, fh->buf, task->fat, (char *) (ADR_DISKIMG + 0x003e00));
+            }
+        }
+    } else if (edx == 22) {
+        fh = (struct FILEHANDLE *) eax;
+        memman_free_4k(memman, (int) fh->buf, fh->size);
+        fh->buf = 0;
+    } else if (edx == 23) {
+        fh = (struct FILEHANDLE *) eax;
+        if (ecx == 0) {
+            fh->pos = ebx;
+        } else if (ecx == 1) {
+            fh->pos += ebx;
+        } else if (ecx == 2) {
+            fh->pos = fh->size + ebx;
+        }
+        if (fh->pos < 0) {
+            fh->pos = 0;
+        }
+        if (fh->pos > fh->size) {
+            fh->pos = fh->size;
+        }
+    } else if (edx == 24) {
+        fh = (struct FILEHANDLE *) eax;
+        if (ecx == 0) {
+            reg[7] = fh->size;
+        } else if (ecx == 1) {
+            reg[7] = fh->pos;
+        } else if (ecx == 2) {
+            reg[7] = fh->pos - fh->size;
+        }
+    } else if (edx == 25) {
+        fh = (struct FILEHANDLE *) eax;
+        for (i = 0; i < ecx; i++) {
+            if (fh->pos == fh->size) {
+                break;
+            }
+            *((char *) ebx + ds_base + i) = fh->buf[fh->pos];
+            fh->pos++;
+        }
+        reg[7] = i;
+    }
+//    else if (edx == 26) {
+//        i = 0;
+//        for (;;) {
+//            *((char *) ebx + ds_base + i) =  task->cmdline[i];
+//            if (task->cmdline[i] == 0) {
+//                break;
+//            }
+//            if (i >= ecx) {
+//                break;
+//            }
+//            i++;
+//        }
+//        reg[7] = i;
+//    } else if (edx == 27) {
+//        reg[7] = task->langmode;
+//    }
     
     return 0;
 }

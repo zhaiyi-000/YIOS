@@ -6,7 +6,7 @@
     GLOBAL _api_putchar,_api_end,_api_putstr0,_api_openwin,_api_putstrwin,_api_boxfilwin
     GLOBAL _api_initmalloc,_api_malloc,_api_free,_api_point,_api_refreshwin,_api_linewin
     GLOBAL _api_closewin,_api_getkey,_api_alloctimer,_api_inittimer,_api_settimer,_api_freetimer
-    GLOBAL _api_beep
+    GLOBAL _api_beep,_api_fopen,_api_fclose,_api_fseek,_api_fsize,_api_fread
     
 [SECTION .text]
 
@@ -237,3 +237,47 @@ _alloca:
     add eax,-4
     sub esp,eax
     jmp dword [esp+eax]
+
+_api_fopen:            ; int api_fopen(char *fname);
+    PUSH    EBX
+    MOV        EDX,21
+    MOV        EBX,[ESP+8]            ; fname
+    INT        0x40
+    POP        EBX
+    RET
+
+_api_fclose:        ; void api_fclose(int fhandle);
+    MOV        EDX,22
+    MOV        EAX,[ESP+4]            ; fhandle
+    INT        0x40
+    RET
+
+
+_api_fseek:            ; void api_fseek(int fhandle, int offset, int mode);
+    PUSH    EBX
+    MOV        EDX,23
+    MOV        EAX,[ESP+8]            ; fhandle
+    MOV        ECX,[ESP+16]        ; mode
+    MOV        EBX,[ESP+12]        ; offset
+    INT        0x40
+    POP        EBX
+    RET
+    
+    
+_api_fsize:            ; int api_fsize(int fhandle, int mode);
+    MOV        EDX,24
+    MOV        EAX,[ESP+4]            ; fhandle
+    MOV        ECX,[ESP+8]            ; mode
+    INT        0x40
+    RET
+
+
+_api_fread:            ; int api_fread(char *buf, int maxsize, int fhandle);
+    PUSH    EBX
+    MOV        EDX,25
+    MOV        EAX,[ESP+16]        ; fhandle
+    MOV        ECX,[ESP+12]        ; maxsize
+    MOV        EBX,[ESP+8]            ; buf
+    INT        0x40
+    POP        EBX
+    RET

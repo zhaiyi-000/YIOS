@@ -3,7 +3,7 @@ INCPATH  = ../../z_tools/haribote/
 
 MAKE     = $(TOOLPATH)make.exe -r
 NASK     = $(TOOLPATH)nask.exe
-CC1      = $(TOOLPATH)cc1.exe -I$(INCPATH) -Os -Wall -quiet
+CC1      = $(TOOLPATH)cc1.exe -I$(INCPATH) -I../ -Os -Wall -quiet
 GAS2NASK = $(TOOLPATH)gas2nask.exe -a
 OBJ2BIM  = $(TOOLPATH)obj2bim.exe
 MAKEFONT = $(TOOLPATH)makefont.exe
@@ -23,9 +23,10 @@ default :
 	$(MAKE) a.hrb
 	$(MAKE) color2.hrb
 	$(MAKE) crack1.hrb
+	$(MAKE) typeipl.hrb
 
 
-%.gas : %.c Makefile
+%.gas : %.c ../apilib.h Makefile
 	$(CC1) -o $*.gas $*.c
 %.nas : %.gas Makefile
 	$(GAS2NASK) $*.gas $*.nas
@@ -58,6 +59,11 @@ crack1.bim : crack1.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:crack1.bim map:crack1.map crack1.obj a_nask.obj
 crack1.hrb : crack1.bim Makefile
 	$(BIM2HRB) crack1.bim crack1.hrb 0
+	
+typeipl.bim : typeipl.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:typeipl.bim map:typeipl.map typeipl.obj a_nask.obj
+typeipl.hrb : typeipl.bim Makefile
+	$(BIM2HRB) typeipl.bim typeipl.hrb 0
 	
 	
 
