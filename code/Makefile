@@ -47,7 +47,7 @@ haribote.sys : asmhead.bin bootpack.hrb Makefile
 
 haribote.img : ipl10.bin haribote.sys Makefile \
 		hrb/hello.hrb hrb/hello2.hrb hrb/a.hrb hrb/color2.hrb hrb/crack1.hrb hrb/crack2.hrb \
-		hrb/type.hrb hrb/iroha.hrb
+		hrb/type.hrb hrb/iroha.hrb hrb/notrec.hrb hrb/bball.hrb hrb/invader.hrb
 	$(EDIMG)   imgin:../z_tools/fdimg0at.tek \
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:haribote.sys to:@: \
@@ -61,6 +61,9 @@ haribote.img : ipl10.bin haribote.sys Makefile \
 		copy from:hrb/crack2.hrb to:@: \
 		copy from:hrb/type.hrb to:@: \
 		copy from:hrb/iroha.hrb to:@: \
+		copy from:hrb/notrec.hrb to:@: \
+		copy from:hrb/bball.hrb to:@: \
+		copy from:hrb/invader.hrb to:@: \
 		copy from:HZK16.fnt to:@: \
 		imgout:haribote.img
 

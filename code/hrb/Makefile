@@ -25,6 +25,10 @@ default :
 	$(MAKE) crack1.hrb
 	$(MAKE) type.hrb
 	$(MAKE) iroha.hrb
+	$(MAKE) notrec.hrb
+	$(MAKE) bball.hrb
+	$(MAKE) invader.hrb
+	
 
 
 %.gas : %.c ../apilib.h Makefile
@@ -71,6 +75,21 @@ iroha.bim : iroha.obj Makefile
 	$(OBJ2BIM) @$(RULEFILE) out:iroha.bim map:iroha.map iroha.obj a_nask.obj
 iroha.hrb : iroha.bim Makefile
 	$(BIM2HRB) iroha.bim iroha.hrb 0
+	
+notrec.bim : notrec.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:notrec.bim map:notrec.map notrec.obj a_nask.obj
+notrec.hrb : notrec.bim Makefile
+	$(BIM2HRB) notrec.bim notrec.hrb 0
+	
+bball.bim : bball.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:bball.bim map:bball.map bball.obj a_nask.obj
+bball.hrb : bball.bim Makefile
+	$(BIM2HRB) bball.bim bball.hrb 0
+	
+invader.bim : invader.obj Makefile
+	$(OBJ2BIM) @$(RULEFILE) out:invader.bim stack:90k map:invader.map invader.obj a_nask.obj
+invader.hrb : invader.bim Makefile
+	$(BIM2HRB) invader.bim invader.hrb 0
 	
 	
 

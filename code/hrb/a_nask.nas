@@ -6,7 +6,7 @@
     GLOBAL _api_putchar,_api_end,_api_putstr0,_api_openwin,_api_putstrwin,_api_boxfilwin
     GLOBAL _api_initmalloc,_api_malloc,_api_free,_api_point,_api_refreshwin,_api_linewin
     GLOBAL _api_closewin,_api_getkey,_api_alloctimer,_api_inittimer,_api_settimer,_api_freetimer
-    GLOBAL _api_beep,_api_fopen,_api_fclose,_api_fseek,_api_fsize,_api_fread,_api_cmdline
+    GLOBAL _api_beep,_api_fopen,_api_fclose,_api_fseek,_api_fsize,_api_fread,_api_cmdline,__alloca
     
 [SECTION .text]
 
@@ -233,7 +233,7 @@ _api_beep:            ; void api_beep(int tone);
     INT        0x40
     RET
 
-_alloca:
+__alloca:
     add eax,-4
     sub esp,eax
     jmp dword [esp+eax]
