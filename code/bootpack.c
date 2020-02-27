@@ -125,12 +125,15 @@ void HariMain(){
     struct FILEINFO *finfo;
     extern char hankaku[4096];
     /* nihongo.fntの読み込み */
-    nihongo = (unsigned char *) memman_alloc_4k(memman, 16 * 256 + 32 * 94 * 47);
+    nihongo = (unsigned char *) memman_alloc_4k(memman, 4096+165440);
     fat = (int *) memman_alloc_4k(memman, 4 * 2880);
     file_readfat(fat, (unsigned char *) (ADR_DISKIMG + 0x000200));
-    finfo = file_search("nihongo.fnt", (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
+    finfo = file_search("HZK16.fnt", (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
     if (finfo != 0) {
-        file_loadfile(finfo->clustno, finfo->size, nihongo, fat, (char *) (ADR_DISKIMG + 0x003e00));
+        file_loadfile(finfo->clustno, finfo->size, nihongo+4096, fat, (char *) (ADR_DISKIMG + 0x003e00));
+        for (i = 0; i < 16 * 256; i++) {
+            nihongo[i] = hankaku[i]; /* フォントがなかったので半角部分をコピー */
+        }
     } else {
         for (i = 0; i < 16 * 256; i++) {
             nihongo[i] = hankaku[i]; /* フォントがなかったので半角部分をコピー */

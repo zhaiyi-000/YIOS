@@ -96,6 +96,60 @@ void putfont8(unsigned char *vram, int xsize, int x, int y, int c, char *font) {
 	}
 }
 
+void putfont32(char *vram, int xsize, int x, int y, char c, char *font1, char *font2)
+{
+    int i,k,j,f;
+    char *p;
+    j=0;
+    p=vram+(y+j)*xsize+x;
+    j++;
+    //…œ∞Î≤ø∑÷
+    for(i=0;i<16;i++)
+    {
+        for(k=0;k<8;k++)
+        {
+            if(font1[i]&(0x80>>k))
+            {
+                p[k+(i%2)*8]=c;
+            }
+        }
+        for(k=0;k<8/2;k++)
+        {
+            f=p[k+(i%2)*8];
+            p[k+(i%2)*8]=p[8-1-k+(i%2)*8];
+            p[8-1-k+(i%2)*8]=f;
+        }
+        if(i%2)
+        {
+            p=vram+(y+j)*xsize+x;
+            j++;
+        }
+    }
+    //œ¬∞Î≤ø∑÷
+    for(i=0;i<16;i++)
+    {
+        for(k=0;k<8;k++)
+        {
+            if(font2[i]&(0x80>>k))
+            {
+                p[k+(i%2)*8]=c;
+            }
+        }
+        for(k=0;k<8/2;k++)
+        {
+            f=p[k+(i%2)*8];
+            p[k+(i%2)*8]=p[8-1-k+(i%2)*8];
+            p[8-1-k+(i%2)*8]=f;
+        }
+        if(i%2)
+        {
+            p=vram+(y+j)*xsize+x;
+            j++;
+        }
+    }
+    return;
+}
+
 void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s)
 {
     extern char hankaku[4096];
@@ -139,13 +193,39 @@ void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s
             x += 8;
         }
     }
+    
+    if (task->langmode == 3) {
+        for (; *s != 0x00; s++) {
+            if (task->langbyte1 == 0) {
+                if (0xa1 <= *s && *s <= 0xfe) {
+                    task->langbyte1 = *s;
+                } else {
+                    putfont8(vram, xsize, x, y, c, hankaku + *s * 16);//÷ª“™ «∞ÎΩ«æÕ π”√hankaku¿Ô√Êµƒ◊÷∑˚
+                }
+            } else {
+                k = task->langbyte1 - 0xa1;
+                t = *s - 0xa1;
+                task->langbyte1 = 0;
+                font = nihongo+256 * 16 + (k * 94 + t) * 32;
+                putfont32(vram,xsize,x-8,y,c,font,font+16);
+            }
+            x += 8;
+        }
+    }
+    
     return;
 }
 
 void putfonts8_asc_sht(struct SHEET *sht, int x, int y, int c,int b, char*s, int l) {
+    struct TASK *task = task_now();
     boxfill8(sht->buf, sht->bxsize, b, x, y, x+8*l-1, y+15);
-    putfonts8_asc(sht->buf, sht->bxsize, x, y, c, s);
-    sheet_refresh( sht, x, y, x+l*8, y+16);   //因为里面是 < 不是<= ,所有是16不是15
+    if (task->langmode != 0 && task->langbyte1 !=0) {
+        putfonts8_asc(sht->buf, sht->bxsize, x, y, c, s);
+        sheet_refresh( sht, x-8, y, x+l*8, y+16);
+    }else{
+        putfonts8_asc(sht->buf, sht->bxsize, x, y, c, s);
+        sheet_refresh( sht, x, y, x+l*8, y+16);   //因为里面是 < 不是<= ,所有是16不是15
+    }
 }
 
 void init_mouse_cursor8(char *mouse,int bc) {

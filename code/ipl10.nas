@@ -1,4 +1,4 @@
-CYLS equ 10
+CYLS equ 20
 
 	org 0x7c00
 

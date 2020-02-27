@@ -2,8 +2,9 @@
 
 void HariMain(void)
 {
-	static char s[9] = { 0x82,0xa0,0x82,0xa0,0x7a,0x79,0xb2, 0xdb, 0xca, 0xc6, 0xce, 0xcd, 0xc4, 0x0a, 0x00 };
-		/* 半角のイロハニホヘトの文字コード+改行+0 */
-	api_putstr0(s);
+    
+	api_putstr0("YIOS ﾄ羲ﾃ\n");
+	api_putstr0("zhaiyi \n");
+	api_putstr0("hello world");
 	api_end();
 }

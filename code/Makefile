@@ -61,18 +61,18 @@ haribote.img : ipl10.bin haribote.sys Makefile \
 		copy from:hrb/crack2.hrb to:@: \
 		copy from:hrb/type.hrb to:@: \
 		copy from:hrb/iroha.hrb to:@: \
-		copy from:nihongo.fnt to:@: \
+		copy from:HZK16.fnt to:@: \
 		imgout:haribote.img
 
 cp :
 	xcopy "Z:\desktop\YIOS_xcode\YIOS\code" "C:\Users\zhaiyi\Desktop\YIOS\code" /e/i/h/y
-	xcopy "c:\Users\zhaiyi\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
+	xcopy "C:\Users\zhaiyi\Desktop\YIOS\code\haribote.img" "Z:\desktop" /e/i/h/y
 
 img :
 	xcopy "Z:\desktop\YIOS_xcode\YIOS\code" "C:\Users\zhaiyi\Desktop\YIOS\code" /e/i/h/y
 	$(MAKE) -C hrb
 	$(MAKE) haribote.img
-	xcopy "c:\Users\zhaiyi\Desktop\YIOS\code\haribote.img" "z:\desktop" /e/i/h/y
+	xcopy "C:\Users\zhaiyi\Desktop\YIOS\code\haribote.img" "Z:\desktop" /e/i/h/y
 
 run :
 	$(MAKE) img
